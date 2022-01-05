@@ -2,6 +2,8 @@
 
 Replace Craft System messages by database driven email templates editable in the backend.
 
+![List](/images/list.png)
+
 Once this plugin is installed, you'll be able to change, for each email :
 - It's subject
 - It's body
@@ -13,7 +15,15 @@ Once this plugin is installed, you'll be able to change, for each email :
 - Add assets as attachements
 - Have a different redactor config
 
-The system will count how many emails are sent and can also log each email sent in database for future reference. The logs are compressed in database so not to take too much space.
+![Content](/images/content.png)
+
+## Logging
+
+You can choose to save a log of each email sent in database for future reference. The logs are compressed in database so not to take too much space.
+
+![Logs](/images/logs.png)
+
+## Project Config
 
 You can choose which email parameter(s) are considered as config. The chosen ones will be included in the project config and will be modified from an environment to another, possible parameters are:
 - Heading
@@ -26,13 +36,25 @@ You can choose which email parameter(s) are considered as config. The chosen one
 - Body
 - Attachements
 
-You can define as many emails as you need. This plugin doesn't send email though, this is for you to do whenever you see want to :
+![Config](/images/config.png)
+
+## Sending emails
+
+This plugin doesn't send email, this is for you to do whenever you want to :
 
 ```
+$variables = [
+    'user' => 'John'
+];
+
 Craft::$app->getMailer()
     ->composeFromKey('email_key', $variables)
-    ->setTo($user)
+    ->setTo('recipient@test.com')
     ->send();
 ```
 
 That's it, the email will automatically be modified according to its config before it's sent.
+
+## Roadmap
+
+- Add a trigger system to send emails automatically when something happens on the system
