@@ -1,0 +1,35 @@
+{
+    "name": "ryssbowh/craft-emails",
+    "description": "Emails",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "emails",
+        "craft-plugin"
+    ],
+    "authors": [
+        {
+            "name": "The Web Puzzlers",
+            "homepage": "https://github.com/ryssbowh"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.5.0",
+        "craftcms/redactor": "^2.7"
+    },
+    "autoload": {
+        "psr-4": {
+          "Ryssbowh\\CraftEmails\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "Emails",
+        "handle": "emails",
+        "developer": "The Web Puzzlers",
+        "developerUrl": "https://github.com/ryssbowh",
+        "class": "Ryssbowh\\CraftEmails\\Emails"
+    }
+}

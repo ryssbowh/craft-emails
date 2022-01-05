@@ -1,0 +1,90 @@
+{% extends "emails/_includes/email" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = 'Edit Email Content'|t('emails') %}
+{% set fullPageForm = true %}
+{% set errors = email.getErrors() %}
+{% set emailSettings = craft.app.systemSettings.getSettings('email') %}
+
+{% set selectedTab = 'content' %}
+
+{% block content %}
+    {{ actionInput('emails/cp-emails/save-content') }}
+    {{ hiddenInput('id', email.id) }}
+    {% if 'heading' not in settings.configDriven %}
+        {{ forms.textField({
+            label: 'Heading'|t('emails'),
+            name: 'heading',
+            required: true,
+            value: email.heading,
+            errors: errors['heading'] ?? []
+        }) }}
+    {% endif %}
+    {% if 'from' not in settings.configDriven %}
+        {{ forms.autosuggestField({
+            label: 'Email from'|t('emails'),
+            type: 'email',
+            name: 'from',
+            value: email.from,
+            suggestEnvVars: true,
+            placeholder: emailSettings.fromEmail,
+            errors: errors['from'] ?? []
+        }) }}
+    {% endif %}
+    {% if 'fromName' not in settings.configDriven %}
+        {{ forms.autosuggestField({
+            label: 'Name from'|t('emails'),
+            name: 'fromName',
+            value: email.fromName,
+            suggestEnvVars: true,
+            placeholder: emailSettings.fromName,
+            errors: errors['fromName'] ?? []
+        }) }}
+    {% endif %}
+    {% if 'replyTo' not in settings.configDriven %}
+        {{ forms.autosuggestField({
+            label: 'Reply to email'|t('emails'),
+            type: 'email',
+            name: 'replyTo',
+            value: email.replyTo,
+            suggestEnvVars: true,
+            placeholder: emailSettings.replyToEmail ?? emailSettings.fromEmail,
+            errors: errors['replyTo'] ?? []
+        }) }}
+    {% endif %}
+    {% if 'cc' not in settings.configDriven %}
+        {{ forms.autosuggestField({
+            label: 'Cc'|t('emails'),
+            name: 'cc',
+            value: email.cc,
+            suggestEnvVars: true,
+            instructions: 'Comma separated emails'|t('emails'),
+            errors: errors['cc'] ?? []
+        }) }}
+    {% endif %}
+    {% if 'bcc' not in settings.configDriven %}
+        {{ forms.autosuggestField({
+            label: 'Bcc'|t('emails'),
+            name: 'bcc',
+            value: email.bcc,
+            suggestEnvVars: true,
+            instructions: 'Comma separated emails'|t('emails'),
+            errors: errors['bcc'] ?? []
+        }) }}
+    {% endif %}
+    {% if 'subject' not in settings.configDriven %}
+        {{ forms.textareaField({
+            label: 'Subject'|t('emails'),
+            name: 'subject',
+            value: email.subject,
+            instructions: 'Subject of the email, twig supported'|t('emails'),
+            errors: errors['subject'] ?? []
+        }) }}
+    {% endif %}
+    {% if 'body' not in settings.configDriven %}
+        {% include "emails/_includes/body" %}
+    {% endif %}
+    {% if 'attachements' not in settings.configDriven %}
+        {% include "emails/_includes/attachements" %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% import "_includes/forms" as forms %}
+
+{{
+    forms.checkboxSelectField({
+        label: 'Config driven parameters'|t('themes'),
+        instructions: "These email parameters will be considered configuration (they won't be available to modify on environments when config changes are disabled)",
+        options: settings.configDrivenOptions,
+        values: settings.configDriven,
+        name: 'configDriven',
+        fieldClass: 'first'
+    })
+}}

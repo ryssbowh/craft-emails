@@ -1,0 +1,89 @@
+{% extends "_layouts/cp" %}
+
+{% block toolbar %}
+    {% if canAddDelete %}
+        <a href="{{ url('emails/add') }}" class="btn submit">{{ 'New Email'|t('emails') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if emails %}
+        <div class="tableview">
+            <table class="vuetable data fullwidth">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Key</th>
+                        <th>Subject</th>
+                        <th>Sent</th>
+                        <th>Save logs</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for email in emails %}
+                        <tr>
+                            <td>
+                                {% if currentUser.can('modifyEmailContent') %}
+                                    <a href="{{ url('emails/edit/'~email.id) }}">{{ email.heading }}</a>
+                                {% else %}
+                                    {{ email.heading }}
+                                {% endif %}
+                            </td>
+                            <td>{{ email.key }}</td>
+                            <td>{{ email.subject }}</td>
+                            <td>{{ email.sent }}</td>
+                            <td>{{ email.saveLogs ? 'Yes' : 'No' }}</td>
+                            <td>
+                                {% if canAddDelete and not email.system %}
+                                    <div class="icon delete email" data-id="{{ email.id }}" title="{{ 'Delete email'|t('emails') }}"></div>
+                                {% endif %}
+                                {% if canEditConfig %}
+                                    <a href="{{ url('emails/config/' ~ email.id ) }}" class="icon settings" title="{{ 'Edit config'|t('emails') }}"></a>
+                                {% endif %}
+                                {% if canViewLogs %}
+                                    <a href="{{ url('emails/logs/' ~ email.id ) }}" title="View logs" class="icon logs"></a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>{{ 'No emails found'|t('emails') }}</p>
+    {% endif %}
+{% endblock %}
+
+{% css %}
+    #toolbar {
+        justify-content: end;
+    }
+    .icon {
+        margin-left: 10px;
+    }
+    .icon.logs:before {
+        content: 'circlerarr';
+        color: rgba(123, 135, 147, 0.5);
+    }
+    .icon.logs:hover:before {
+        color: initial;   
+    }
+{% endcss %}
+
+{% js on ready %}
+    $('.delete.email').click(function(){
+        let line = $(this).parent().parent();
+        if (confirm('Do you want to delete email ?')) {
+            $.ajax({
+                url: Craft.getCpUrl('emails/delete/'+$(this).data('id')),
+                method: 'POST',
+                dataType: 'json'
+            }).done(function(data) {
+                Craft.cp.displayNotice(data.message);
+                line.remove();
+            })
+        }
+    })
+{% endjs %}
+

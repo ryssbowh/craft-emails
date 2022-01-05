@@ -1,0 +1,44 @@
+{% extends "_layouts/cp" %}
+
+{% set tabs = {} %}
+
+{% if currentUser.can('modifyEmailContent') %}
+    {% set tabs = tabs|merge({
+        'content': {
+            selected: selectedTab == 'content',
+            url: url("emails/edit/" ~ email.id),
+            label: "Content"|t('emails')
+        }
+    }) %}
+{% endif %}
+{% if currentUser.can('seeEmailLogs') %}
+    {% set tabs = tabs|merge({
+        'logs': {
+            selected: selectedTab == 'logs',
+            url: url("emails/logs/" ~ email.id),
+            label: "Logs"|t('emails')
+        }
+    }) %}
+{% endif %}
+{% if craft.app.config.general.allowAdminChanges and currentUser.can('modifyEmailConfig') %}
+    {% set tabs = tabs|merge({
+        'config': {
+            selected: selectedTab == 'config',
+            url: url("emails/config/" ~ email.id),
+            label: "Config"|t('emails')
+        }
+    }) %}
+{% endif %}
+
+{% block toolbar %}
+    <a href="{{ url('emails') }}" class="btn back">Back</a>
+{% endblock %}
+
+{% css %}
+    #toolbar {
+        justify-content: end;
+    }
+    .field:first-of-type {
+        margin-top: 0;
+    }
+{% endcss %}

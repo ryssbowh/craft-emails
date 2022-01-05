@@ -1,0 +1,18 @@
+{% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle("craft\\redactor\\assets\\redactor\\RedactorAsset") %}
+
+{{ forms.textareaField({
+    label: 'Body'|t('emails'),
+    name: 'body',
+    value: email.body,
+    instructions: 'Content of the email, twig supported'|t('emails'),
+    tip: email.instructions,
+    inputAttributes: {id: 'field-body'},
+    errors: errors['body'] ?? []
+}) }}
+
+{% js on ready %}
+    {% if not email.plain %}
+        $R('#field-body', {{ email.redactorSettings|json_encode|raw }});
+    {% endif %}
+{% endjs %}

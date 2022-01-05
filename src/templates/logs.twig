@@ -1,0 +1,82 @@
+{% extends "emails/_includes/email" %}
+
+{% set selectedTab = 'logs' %}
+{% set title = 'Logs for {email}'|t('emails', {'email': email.heading}) %}
+{% set baseUrl = url('emails/logs/' ~ email.id) %}
+
+{% block toolbar %}
+    <a href="{{ url('emails') }}" class="btn back">Back</a>
+    {% if currentUser.can('deleteEmailLogs') %}
+        <a href="{{ url('emails/logs/' ~ email.id ~ '/delete') }}" class="btn submit delete-logs">Delete logs</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if logs %}
+        <div class="tableview">
+            <table class="vuetable data fullwidth">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>To</th>
+                        <th>Bcc</th>
+                        <th>Cc</th>
+                        <th>Content</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for index, log in logs %}
+                        <tr>
+                            <td>{{ log.subject }}</td>
+                            <td>{{ log.dateCreated|date('d/m/Y H:i:s') }}</td>
+                            <td>{{ log.email }}</td>
+                            <td>{{ log.bcc }}</td>
+                            <td>{{ log.cc }}</td>
+                            <td id="email-content-{{ index }}"></td>
+                        </tr>
+                        {% js %}
+                            var iframe = document.createElement('iframe');
+                            var html = `{{ log.uncompressedContent|raw }}`;
+                            document.getElementById('email-content-{{ index }}').appendChild(iframe);
+                            iframe.contentWindow.document.open();
+                            iframe.contentWindow.document.write(html);
+                            iframe.contentWindow.document.close();
+                        {% endjs %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if pages.pageCount > 1 %}
+                <div class="flex pagination">
+                    {% for page in range(1, pages.pageCount) %}
+                        <a class="page-link page-number{% if page == pages.page + 1 %} active{% endif %}" href="{{ baseUrl }}?page={{ page }}">{{ page }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>No logs found</p>
+    {% endif %}
+{% endblock %}
+
+{% js %}
+    $('.btn.delete-logs').click(function(e){
+        if (!confirm('{{ 'Are you sure you want to delete all logs?'|t('emails') }}')) {
+            e.preventDefault();
+        }
+    });
+{% endjs %}
+
+
+{% css %}
+    #toolbar {
+        justify-content: end;
+    }
+    .pagination {
+        justify-content: center;
+    }
+    .pagination .page-link.active {
+        box-shadow: inset 0 0 0 1px #0b69a3;
+    }
+{% endcss %}
+
