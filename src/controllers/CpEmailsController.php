@@ -5,6 +5,7 @@ namespace Ryssbowh\CraftEmails\controllers;
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\Models\Email;
 use Ryssbowh\CraftEmails\Models\EmailShot;
+use Ryssbowh\CraftEmails\assets\EmailsAssetBundle;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
@@ -23,8 +24,9 @@ class CpEmailsController extends Controller
 
     public function actionIndex()
     {
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         $allow = \Craft::$app->config->general->allowAdminChanges;
-        return $this->renderTemplate('emails/dashboard', [
+        return $this->renderTemplate('emails/emails', [
             'title' => \Craft::t('emails', 'Emails'),
             'emails' => Emails::$plugin->emails->all(),
             'canAddDelete' => $allow && \Craft::$app->getUser()->checkPermission('addDeleteEmailTemplates'),
@@ -36,7 +38,8 @@ class CpEmailsController extends Controller
     public function actionAdd()
     {
         $this->requirePermission('addDeleteEmailTemplates');
-        return $this->renderTemplate('emails/add', [
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
+        return $this->renderTemplate('emails/add-email', [
             'email' => new Email,
             'settings' => Emails::$plugin->settings
         ]);
@@ -45,6 +48,7 @@ class CpEmailsController extends Controller
     public function actionEditContent(int $id)
     {
         $this->requirePermission('modifyEmailContent');
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         return $this->renderTemplate('emails/edit-content', [
             'email' => Emails::$plugin->emails->getById($id),
             'settings' => Emails::$plugin->settings
@@ -54,6 +58,7 @@ class CpEmailsController extends Controller
     public function actionEditConfig(int $id)
     {
         $this->requirePermission('modifyEmailConfig');
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         return $this->renderTemplate('emails/edit-config', [
             'email' => Emails::$plugin->emails->getById($id),
             'settings' => Emails::$plugin->settings
@@ -140,15 +145,40 @@ class CpEmailsController extends Controller
 
     public function actionLogs(int $emailId)
     {
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         $this->requirePermission('seeEmailLogs');
         $email = Emails::$plugin->emails->getById($emailId);
         $orderSide = $this->request->getParam('orderSide', 'desc');
         $order = $this->request->getParam('order', 'dateCreated');
         list($models, $pages) = Emails::$plugin->emails->getLogs($email, $order, $orderSide);
-        return $this->renderTemplate('emails/logs', [
+        return $this->renderTemplate('emails/email-logs', [
             'email' => $email,
             'logs' => $models,
             'pages' => $pages
+        ]);
+    }
+
+    public function actionView()
+    {
+        $this->requirePermission('seeEmailLogs');
+        $id = $this->request->getRequiredParam('id');
+        $log = Emails::$plugin->emails->getLogById($id);
+        return $this->asJson($log->toArray());
+    }
+
+    public function actionResend()
+    {
+        $this->requirePermission('sendEmails');
+        $id = $this->request->getRequiredParam('id');
+        $log = Emails::$plugin->emails->getLogById($id);
+        if (Emails::$plugin->emails->resend($log)) {
+            $message = \Craft::t('emails', 'Email has been resent.');
+        } else {
+            $this->response->setStatusCode(400);
+            $message = \Craft::t('emails', 'Error while resending the email.');
+        }
+        return $this->asJson([
+            'message' => $message
         ]);
     }
 }

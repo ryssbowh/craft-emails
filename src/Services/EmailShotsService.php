@@ -5,8 +5,9 @@ namespace Ryssbowh\CraftEmails\Services;
 use Ryssbowh\CraftEmails\Events\EmailShotEvent;
 use Ryssbowh\CraftEmails\Events\SendEmailShotEvent;
 use Ryssbowh\CraftEmails\Models\EmailShot;
+use Ryssbowh\CraftEmails\Models\EmailShotLog;
 use Ryssbowh\CraftEmails\Records\EmailShot as EmailShotRecord;
-use Ryssbowh\CraftEmails\Records\EmailShotLog;
+use Ryssbowh\CraftEmails\Records\EmailShotLog as EmailShotLogRecord;
 use Ryssbowh\CraftEmails\exceptions\EmailShotException;
 use Ryssbowh\CraftEmails\jobs\EmailShotJob;
 use craft\base\Component;
@@ -176,13 +177,19 @@ class EmailShotsService extends Component
             return false;
         }
         $email = \Craft::$app->getMailer()
-            ->composeFromKey($shot->emailObject->key, $shot->variables);
+            ->composeFromKey($shot->email->key, $shot->variables);
         $success = [];
-        foreach ($shot->allEmails as $emailAddress) {
+        foreach ($shot->allEmails as $emailAddress => $name) {
+            if (is_int($emailAddress)) {
+                $emailAddress = $name;
+                $name = null;
+            }
             \Craft::info('Sending ' . $shot->description . ' to ' . $emailAddress, 'emails');
             try {
-                $email->setTo($emailAddress)->send();
-                $success[] = $emailAddress;
+                $email->setTo([
+                    $emailAddress => $name
+                ])->send();
+                $success[$emailAddress] = $name;
             } catch (\Exception $e) {
                 \Craft::$app->errorHandler->handleException($e);
             }
@@ -217,7 +224,7 @@ class EmailShotsService extends Component
      */
     public function getLogs(EmailShot $shot, string $order = 'dateCreated', string $orderSide = 'desc'): array
     {
-        $query = EmailShotLog::find()->where(['shot_id' => $shot->id])->orderBy([$order => $orderSide == 'asc' ? SORT_ASC : SORT_DESC]);
+        $query = EmailShotLogRecord::find()->where(['shot_id' => $shot->id])->orderBy([$order => $orderSide == 'asc' ? SORT_ASC : SORT_DESC]);
         $countQuery = clone $query;
         $pages = new Pagination([
             'totalCount' => $countQuery->count()
@@ -225,7 +232,25 @@ class EmailShotsService extends Component
         $models = $query->offset($pages->offset)
             ->limit($pages->limit)
             ->all();
+        $models = array_map(function ($record) {
+            return $record->toModel();
+        }, $models);
         return [$models, $pages];
+    }
+
+    /**
+     * Get a log by id
+     * 
+     * @param  int    $id
+     * @return EmailShotLog
+     */
+    public function getLogById(int $id): EmailShotLog
+    {
+        $log = EmailShotLogRecord::find()->where(['id' => $id])->one();
+        if (!$log) {
+            throw EmailShotException::noLogId($id);
+        }
+        return $log->toModel();
     }
 
     /**
@@ -237,13 +262,13 @@ class EmailShotsService extends Component
     public function deleteLogs(EmailShot $shot, ?array $ids = null)
     {
         if (is_array($ids)) {
-            $logs = EmailShotLog::find()->where(['in', 'id', $ids])->andWhere(['shot_id' => $shot->id])->all();
+            $logs = EmailShotLogRecord::find()->where(['in', 'id', $ids])->andWhere(['shot_id' => $shot->id])->all();
             foreach ($logs as $log) {
                 $log->delete();
             }
         } else {
             \Craft::$app->getDb()->createCommand()
-                ->delete(EmailShotLog::tableName(), ['shot_id' => $shot->id])
+                ->delete(EmailShotLogRecord::tableName(), ['shot_id' => $shot->id])
                 ->execute();
         }
     }
@@ -262,14 +287,14 @@ class EmailShotsService extends Component
             $record->save(false);
         }
         if ($shot->saveLogs) {
-            foreach ($emails as $email) {
-                $log = new EmailShotLog([
-                    'email' => $email,
-                    'shot_id' => $shot->id ? $shot->id : null,
-                    'message' => $shot->description . ' sent'
-                ]);
-                $log->save(false);
-            }
+            $user = \Craft::$app->getUser()->getIdentity();
+            $log = new EmailShotLogRecord([
+                'emails' => $emails,
+                'shot_id' => $shot->id ? $shot->id : null,
+                'user_id' => $user ? $user->id : null,
+                'is_console' => \Craft::$app->request->isConsoleRequest
+            ]);
+            $log->save(false);
         }
     }
 

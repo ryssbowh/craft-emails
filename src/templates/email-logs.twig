@@ -1,0 +1,192 @@
+{% extends "emails/_includes/email" %}
+
+{% set selectedTab = 'logs' %}
+{% set title = 'Logs for {email}'|t('emails', {'email': email.heading}) %}
+{% set order = craft.app.request.getQueryParam("order", 'dateCreated') %}
+{% set orderSide = craft.app.request.getQueryParam("orderSide", 'desc') %}
+{% set page = craft.app.request.getQueryParam("page", 1) %}
+{% set baseUrl = url('emails/logs/' ~ email.id) %}
+
+{% macro outputEmails(emails) %}
+    {% for email, name in emails %}
+        <a href="mailto:{{ email }}">{{ email }}{% if name %} ({{name}}){% endif %}</a><br/>
+    {% endfor %}
+{% endmacro %}
+
+{% block toolbar %}
+    <a href="{{ url('emails') }}" class="btn back">{{ 'Back'|t('app') }}</a>
+    {% if currentUser.can('deleteEmailLogs') %}
+        <a href="#" data-id="{{ email.id }}" class="btn submit js-delete-all">{{ 'Delete all'|t('emails') }}</a>
+        <a href="#" data-id="{{ email.id }}" class="btn submit js-delete-selection" style="display:none">{{ 'Delete selection'|t('emails') }}</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if logs %}
+        <div class="tableview">
+            <table class="vuetable data fullwidth">
+                <thead>
+                    <tr>
+                        {% if currentUser.can('deleteEmailLogs') %}
+                            <th>
+                                <input type="checkbox" class="checkbox js-select-all" autocomplete="off">
+                                <label></label>
+                            </th>
+                        {% endif %}
+                        <th>{{ 'Subject'|t('emails') }}</th>
+                        <th>{{ 'To'|t('emails') }}</th>
+                        <th>{{ 'Cc'|t('emails') }}</th>
+                        <th>{{ 'Bcc'|t('emails') }}</th>
+                        <th>{{ 'Sent by'|t('emails') }}</th>
+                        <th {% if order == 'dateCreated' %}class="ordered {{ orderSide }}"{% endif %}>
+                            <a href="{{ baseUrl }}?page={{ page }}&orderSide={{ orderSide == 'asc' ? 'desc' : 'asc' }}&order=dateCreated">
+                                {{ 'Date'|t('emails') }}
+                            </a>
+                        </th>
+                        <th>{{ 'Actions'|t('emails') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for index, log in logs %}
+                        <tr>
+                            {% if currentUser.can('deleteEmailLogs') %}
+                                <td>
+                                    <input type="checkbox" class="checkbox js-select" data-id="{{ log.id }}"  autocomplete="off">
+                                    <label></label>
+                                </td>
+                            {% endif %}
+                            <td>{{ log.subject }}</td>
+                            <td>{{ _self.outputEmails(log.to) }}</td>
+                            <td>{{ _self.outputEmails(log.cc) }}</td>
+                            <td>{{ _self.outputEmails(log.bcc) }}</td>
+                            <td>
+                                {% if log.user %}
+                                    {{ log.user.friendlyName }}
+                                {% elseif log.is_console %}
+                                    <i>{{ 'system'|t('emails') }}
+                                {% else %}
+                                    <i>{{ 'deleted user'|t('emails') }}
+                                {% endif %}
+                            </td>
+                            <td>{{ log.dateCreated|date('d/m/Y H:i:s') }}</td>
+                            <td>
+                                <a href="#" class="btn btn-small js-view" data-id="{{ log.id }}">{{ 'View more'|t('emails') }}</a>
+                                {% if currentUser.can('sendEmails') %}
+                                    <a href="#" class="btn btn-small js-resend" data-id="{{ log.id }}">{{ 'Resend'|t('emails') }}<div class="spinner"></div></a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if pages.pageCount > 1 %}
+                <div class="flex pagination">
+                    {% for page in range(1, pages.pageCount) %}
+                        <a class="page-link page-number{% if page == pages.page + 1 %} active{% endif %}" href="{{ baseUrl }}?page={{ page }}">{{ page }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>{{ 'No logs found'|t('emails') }}</p>
+    {% endif %}
+    <div id="content-modal" class="modal elementselectormodal" style="display:none">
+        <div class="body has-sidebar">
+            <div class="content has-sidebar">
+                <div class="sidebar">
+                    <div class="heading">
+                        <span>{{ 'Details'|t('emails') }}</span><br/>
+                        <label>{{ 'Subject'|t('emails') }}:</label><br/>
+                        <div class="email-subject"></div>
+                        <label>{{ 'To'|t('emails') }}:</label><br/>
+                        <div class="email-to"></div>
+                        <label>{{ 'Cc'|t('emails') }}:</label><br/>
+                        <div class="email-cc"></div>
+                        <label>{{ 'Bcc'|t('emails') }}:</label><br/>
+                        <div class="email-bcc"></div>
+                        <label>{{ 'From'|t('emails') }}:</label><br/>
+                        <div class="email-from"></div>
+                        <label>{{ 'Reply to'|t('emails') }}:</label><br/>
+                        <div class="email-replyto"></div>
+                        <label>{{ 'Attachements'|t('emails') }}:</label><br/>
+                        <div class="email-attachements"></div>
+                    </div>
+                </div>
+                <div class="main">
+                    <div class="heading">
+                        <span>{{ 'Content'|t('emails')|upper }}</span>
+                    </div>
+                    <iframe></iframe>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="buttons right">
+                <button type="button" class="btn js-close" tabindex="0">{{ 'Close'|t('app') }}</button>
+            </div>
+        </div>
+    </div>
+    {% include "emails/_includes/js-errors" %}
+    {% include "emails/_includes/js-logs" with {deleteAction: 'emails/cp-emails/delete-logs'} %}
+{% endblock %}
+
+{% js %}
+    var modal = new Garnish.Modal($('#content-modal'), {
+        autoShow: false
+    });
+    $('#content-modal .js-close').click(function(){
+        modal.hide();
+    });
+    function formatEmails(emails) {
+        var html = '';
+        for (var i in emails) {
+            html += '<div><a href=mailto:' + i + '>' + i + (emails[i] ? ' (' + emails[i] + ')' : '') + '</a></div>'
+        }
+        return html;
+    }
+    $('.js-view').click(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: Craft.getActionUrl('emails/cp-emails/view'),
+            data: {id: $(this).data('id')}
+        }).done(function (data) {
+            var iframe = $('#content-modal iframe')[0];
+            iframe.src = "data:text/html;charset=utf-8," + data.uncompressedContent;
+            $('#content-modal .email-subject').html(data.subject);
+            $('#content-modal .email-to').html(formatEmails(data.to));
+            $('#content-modal .email-cc').html(formatEmails(data.cc));
+            $('#content-modal .email-bcc').html(formatEmails(data.bcc));
+            $('#content-modal .email-from').html(formatEmails(data.from));
+            $('#content-modal .email-replyto').html(formatEmails(data.replyTo));
+            var html = '';
+            for (var i in data.attachements) {
+                html += '<div><a target="_blank" href="' + data.attachements[i].url + '">' + data.attachements[i].title + '</a></div>';
+            }
+            $('#content-modal .email-attachements').html(html);
+            modal.show();
+        })
+    });
+    $('.js-resend').click(function (e) {
+        e.preventDefault();
+        let id = $(this).data('id');
+        let button = $(this);
+        if (confirm('{{ "Are you sure you want to resend this email now?"|t("emails") }}')) {
+            $(this).find('.spinner').show();
+            $(this).attr('disabled', true);
+            $.ajax({
+                url: Craft.getActionUrl('emails/cp-emails/resend'),
+                data: {id: id},
+                dataType: 'json'
+            }).fail(function (data) {
+                handleError(data);
+            }).done(function (data){
+                if (data.message) {
+                    Craft.cp.displayNotice(data.message);
+                }
+            }).always(function() {
+                button.find('.spinner').hide();
+                button.attr('disabled', false);
+            });
+        }
+    });
+{% endjs %}

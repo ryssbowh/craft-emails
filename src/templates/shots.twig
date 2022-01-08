@@ -5,7 +5,9 @@
 {% set selectedSubnavItem = 'shots' %}
 
 {% block toolbar %}
-    <a href="{{ url('emails/quick-shot') }}" class="btn submit">{{ 'Quick shot'|t('emails') }}</a>
+    {% if currentUser.can('sendEmails') %}
+        <a href="{{ url('emails/quick-shot') }}" class="btn submit">{{ 'Quick shot'|t('emails') }}</a>
+    {% endif %}
     <a href="{{ url('emails/shots/add') }}" class="btn submit">{{ 'New shot'|t('emails') }}</a>
 {% endblock %}
 
@@ -36,13 +38,13 @@
                             </td>
                             <td>{{ shot.handle }}</td>
                             <td>
-                                {% if not shot.emailObject %}
+                                {% if not shot.email %}
                                     <span class="error">{{ 'No email set'|t('emails') }}</span>
                                 {% else %}
                                     {% if currentUser.can('modifyEmailContent') %}
-                                        <a target="_blank" href="{{ shot.emailObject.cpEditUrl }}">{{ shot.emailObject.heading }}</a>
+                                        <a target="_blank" href="{{ shot.email.cpEditUrl }}">{{ shot.email.heading }}</a>
                                     {% else %}
-                                        {{ shot.emailObject.heading }}
+                                        {{ shot.email.heading }}
                                     {% endif %}
                                 {% endif %}
                             </td>
@@ -55,15 +57,17 @@
                             <td>
                                 {{ shot.sent }}
                             </td>
-                            <td>
-                                <div class="actions-wrapper flex flex-nowrap">
-                                    <div class="icon delete js-delete" data-id="{{ shot.id }}" title="{{ 'Delete'|t('emails') }}"></div>
-                                    {% if currentUser.can('seeEmailLogs') %}
-                                        <a href="{{ url('emails/shots/logs/' ~ shot.id ) }}" title="View logs" class="icon logs"></a>
+                            <td class="actions-cell">
+                                <div class="flex flex-nowrap justify-between">
+                                    {% if shot.email and currentUser.can('sendEmails') %}
+                                        <button class="btn btn-small js-send" data-id="{{ shot.id }}">{{ 'Send now'|t('emails') }}<div class="spinner"></div></button>
                                     {% endif %}
-                                    {% if shot.emailObject %}
-                                        <button class="btn js-send" data-id="{{ shot.id }}">{{ 'Send now'|t('emails') }}<div class="spinner"></div></button>
-                                    {% endif %}
+                                    <div>
+                                        {% if currentUser.can('seeEmailLogs') and shot.saveLogs %}
+                                            <a href="{{ url('emails/shots/logs/' ~ shot.id ) }}" title="{{ 'View logs'|t('emails') }}" class="icon logs"></a>
+                                        {% endif %}
+                                        <div class="icon delete js-delete" data-id="{{ shot.id }}" title="{{ 'Delete'|t('emails') }}"></div>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -76,27 +80,6 @@
     {% endif %}
     {% include "emails/_includes/js-errors" %}
 {% endblock %}
-
-{% css %}
-    #toolbar {
-        justify-content: end;
-    }
-    .js-send {
-        margin-left: 20px;
-        height: 25px;
-        padding:  7px;
-    }
-    .actions-wrapper {
-        align-items: center;
-    }
-    .js-send .spinner {
-        display: none;
-    }
-    .icon.logs:before {
-        content: 'circlerarr';
-        color: rgba(123, 135, 147, 0.5);
-    }
-{% endcss %}
 
 {% js %}
     $('.js-delete').click(function (e) {

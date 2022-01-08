@@ -14,7 +14,7 @@ class ShotController extends Controller
     public $runQueue = false;
 
     /**
-     * @var bool Override the useQueue parameter of the shot
+     * @var bool Override the useQueue parameter of the email shot
      */
     public $forceQueue;
 

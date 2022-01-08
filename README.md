@@ -22,7 +22,8 @@ Once this plugin is installed, you'll be able to change, for each email :
 
 ### Logging
 
-You can choose to save a log of each email sent in database for future reference. The logs are compressed in database so not to take too much space.
+You can choose to save a log of each email sent in database for future reference. The logs are compressed in database so not to take too much space.  
+Enabling the logs will allow you to resend previously sent emails.
 
 ![Logs](/images/logs.png)
 
@@ -132,6 +133,7 @@ Send an email shot :
 - See emails logs (applies to shot logs as well)
 - Delete emails logs (applies to shot logs as well)
 - Manage email shots
+- Send emails
 
 To add attachements users will need "View volume" and potentially "View files uploaded by other users" for one or several volumes.
 
@@ -148,3 +150,4 @@ Craft >= 3.5
 ## Roadmap
 
 - Add a trigger system to send emails automatically when something happens on the system
+- mailchimp lists integration, as sources

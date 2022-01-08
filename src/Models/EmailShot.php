@@ -51,17 +51,17 @@ class EmailShot extends Model
     /**
      * @var array
      */
-    public $users;
+    protected $_users = [];
 
     /**
      * @var array
      */
-    public $emails;
+    protected $_emails = [];
 
     /**
      * @var array
      */
-    public $sources;
+    protected $_sources = [];
 
     /**
      * @var boolean
@@ -126,11 +126,81 @@ class EmailShot extends Model
     }
 
     /**
-     * @inheritDoc
+     * Users setter
+     * 
+     * @param string|array $users
      */
-    public function __sleep()
+    public function setUsers($users)
     {
-        return ['email_id', 'emails', 'users', 'sources', 'useQueue', 'variables', 'handle', 'name', 'id', 'uid'];
+        if (is_string($users)) {
+            $users = json_decode($users, true);
+        }
+        if (is_null($users)) {
+            $users = [];
+        }
+        $this->_users = $users;
+    }
+
+    /**
+     * Sources setter
+     * 
+     * @param string|array $sources
+     */
+    public function setSources($sources)
+    {
+        if (is_string($sources)) {
+            $sources = json_decode($sources, true);
+        }
+        if (is_null($sources)) {
+            $sources = [];
+        }
+        $this->_sources = $sources;
+    }
+
+    /**
+     * Emails setter
+     * 
+     * @param string|array $emails
+     */
+    public function setEmails($emails)
+    {
+        if (is_string($emails)) {
+            $emails = json_decode($emails, true);
+        }
+        if (is_null($emails)) {
+            $emails = [];
+        }
+        $this->_emails = $emails;
+    }
+
+    /**
+     * Emails getter
+     * 
+     * @return array
+     */
+    public function getEmails(): array
+    {
+        return $this->_emails;
+    }
+
+    /**
+     * Users getter
+     * 
+     * @return array
+     */
+    public function getUsers(): array
+    {
+        return $this->_users;
+    }
+
+    /**
+     * Sources getter
+     * 
+     * @return array
+     */
+    public function getSources(): array
+    {
+        return $this->_sources;
     }
 
     /**
@@ -151,7 +221,7 @@ class EmailShot extends Model
      * 
      * @return Email
      */
-    public function getEmailObject(): ?Email
+    public function getEmail(): ?Email
     {
         if ($this->email_id) {
             return Emails::$plugin->emails->getById($this->email_id);
@@ -185,13 +255,25 @@ class EmailShot extends Model
     {
         $emails = $this->emails;
         foreach ($this->getUserElements() as $user) {
-            $emails[] = $user->email;
+            $emails[$user->email] = $user->friendlyName;
         }
         foreach ($this->sourceObjects as $source) {
             $emails = array_merge($emails, $source->emails);
         }
         if (Emails::$plugin->settings->removeShotDuplicates) {
-            return array_unique($emails);    
+            $allAddresses = [];
+            $filtered = [];
+            foreach ($emails as $address => $name) {
+                if (is_int($address)) {
+                    $address = $name;
+                    $name = null;
+                }
+                if (!in_array($address, $allAddresses)) {
+                    $filtered[$address] = $name;
+                    $allAddresses[] = $address;
+                }
+            }
+            $emails = $filtered;
         }
         return $emails;
     }
@@ -214,8 +296,8 @@ class EmailShot extends Model
     public function getDescription(): string
     {
         if ($this->name) {
-            return "email shot '" . $this->name . "'";
+            return \Craft::t('emails', "email shot '{name}'", ['name' => $this->name]);
         }
-        return "quick email shot";
+        return \Craft::t('emails', "quick email shot");
     }
 }

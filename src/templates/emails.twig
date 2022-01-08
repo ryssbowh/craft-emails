@@ -12,12 +12,12 @@
             <table class="vuetable data fullwidth">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Key</th>
-                        <th>Subject</th>
-                        <th>Sent</th>
-                        <th>Save logs</th>
-                        <th>Actions</th>
+                        <th>{{ 'Title'|t('app') }}</th>
+                        <th>{{ 'Key'|t('emails') }}</th>
+                        <th>{{ 'Subject'|t('emails') }}</th>
+                        <th>{{ 'Sent'|t('emails') }}</th>
+                        <th>{{ 'Logs'|t('emails') }}</th>
+                        <th>{{ 'Actions'|t('emails') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,16 +33,16 @@
                             <td>{{ email.key }}</td>
                             <td>{{ email.subject }}</td>
                             <td>{{ email.sent }}</td>
-                            <td>{{ email.saveLogs ? 'Yes' : 'No' }}</td>
-                            <td>
+                            <td>{{ email.saveLogs ? 'Yes'|t('emails') : 'No'|t('emails') }}</td>
+                            <td class="actions-cell">
                                 {% if canAddDelete and not email.system %}
                                     <div class="icon delete email" data-id="{{ email.id }}" title="{{ 'Delete email'|t('emails') }}"></div>
                                 {% endif %}
                                 {% if canEditConfig %}
                                     <a href="{{ url('emails/config/' ~ email.id ) }}" class="icon settings" title="{{ 'Edit config'|t('emails') }}"></a>
                                 {% endif %}
-                                {% if canViewLogs %}
-                                    <a href="{{ url('emails/logs/' ~ email.id ) }}" title="View logs" class="icon logs"></a>
+                                {% if canViewLogs and email.saveLogs %}
+                                    <a href="{{ url('emails/logs/' ~ email.id ) }}" title="{{ 'View logs'|t('emails') }}" class="icon logs"></a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -55,22 +55,6 @@
     {% endif %}
     {% include "emails/_includes/js-errors" %}
 {% endblock %}
-
-{% css %}
-    #toolbar {
-        justify-content: end;
-    }
-    .icon {
-        margin-left: 10px;
-    }
-    .icon.logs:before {
-        content: 'circlerarr';
-        color: rgba(123, 135, 147, 0.5);
-    }
-    .icon.logs:hover:before {
-        color: initial;   
-    }
-{% endcss %}
 
 {% js %}
     $('.delete.email').click(function(){

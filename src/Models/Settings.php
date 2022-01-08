@@ -23,6 +23,11 @@ class Settings extends Model
     public $removeShotDuplicates = true;
 
     /**
+     * @var boolean
+     */
+    public $compressLogs = false;    
+
+    /**
      * Get all parameters that can be considered config
      * 
      * @return array

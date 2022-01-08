@@ -14,10 +14,6 @@ class EmailShot extends ActiveRecord
 
     public function toModel()
     {
-        $attributes = $this->getAttributes();
-        $attributes['sources'] = json_decode($attributes['sources'], true);
-        $attributes['users'] = json_decode($attributes['users'], true);
-        $attributes['emails'] = json_decode($attributes['emails'], true);
-        return new EmailShotModel($attributes);
+        return new EmailShotModel($this->getAttributes());
     }
 }

@@ -22,7 +22,7 @@ class EmailShotJob extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return \Craft::t('emails', 'Sending ' . $this->shot->description);
+        return \Craft::t('emails', 'Sending {shot}', ['shot' => $this->shot->description]);
     }
 
 }

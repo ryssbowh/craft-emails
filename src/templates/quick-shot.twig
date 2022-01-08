@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block toolbar %}
-    <a href="{{ url('emails/shots') }}" class="btn">{{ 'Back'|t('emails') }}</a>
+    <a href="{{ url('emails/shots') }}" class="btn">{{ 'Back'|t('app') }}</a>
     <button type="submit" class="btn submit">{{ 'Send'|t('emails') }}</button>
 {% endblock %}
 
@@ -17,9 +17,3 @@
     {{ actionInput('emails/cp-shots/send-quick-shot') }}
     {% include "emails/_includes/shot_form" %}
 {% endblock %}
-
-{% css %}
-    #toolbar {
-        justify-content: end;
-    }
-{% endcss %}

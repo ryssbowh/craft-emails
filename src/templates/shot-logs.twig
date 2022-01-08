@@ -11,7 +11,7 @@
     }
 } %}
 
-{% if currentUser.can('deleteEmailLogs') %}
+{% if currentUser.can('deleteEmailLogs') and shot.saveLogs %}
     {% set tabs = tabs|merge({
         'logs': {
            selected: selectedTab == 'logs',
@@ -28,10 +28,10 @@
 {% set baseUrl = url('emails/shots/logs/' ~ shot.id) %}
 
 {% block toolbar %}
-    <a href="{{ url('emails/shots') }}" class="btn back">Back</a>
+    <a href="{{ url('emails/shots') }}" class="btn back">{{ 'Back'|t('app') }}</a>
     {% if currentUser.can('deleteEmailLogs') %}
-        <a href="#" data-id="{{ shot.id }}" class="btn submit js-delete-all">Delete all</a>
-        <a href="#" data-id="{{ shot.id }}" class="btn submit js-delete-selection" style="display:none">Delete selection</a>
+        <a href="#" data-id="{{ shot.id }}" class="btn submit js-delete-all">{{ 'Delete all'|t('emails') }}</a>
+        <a href="#" data-id="{{ shot.id }}" class="btn submit js-delete-selection" style="display:none">{{ 'Delete selection'|t('emails') }}</a>
     {% endif %}
 {% endblock %}
 
@@ -47,13 +47,16 @@
                                 <label></label>
                             </th>
                         {% endif %}
-                        <th {% if order == 'email' %}class="ordered {{ orderSide }}"{% endif %}>
-                            <a href="{{ baseUrl }}?page={{ page }}&orderSide={{ orderSide == 'asc' ? 'desc' : 'asc' }}&order=email">{{ 'Email'|t('emails') }}</a>
+                        <th>
+                            {{ 'Sent by'|t('emails') }}
                         </th>
-                        <th>Message</th>
+                        <th>
+                            {{ 'Emails sent'|t('emails') }}
+                        </th>
                         <th {% if order == 'dateCreated' %}class="ordered {{ orderSide }}"{% endif %}>
                             <a href="{{ baseUrl }}?page={{ page }}&orderSide={{ orderSide == 'asc' ? 'desc' : 'asc' }}&order=dateCreated">{{ 'Date'|t('emails') }}</a>
                         </th>
+                        <th>{{ 'Actions'|t('emails') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,9 +68,22 @@
                                     <label></label>
                                 </td>
                             {% endif %}
-                            <td>{{ log.email }}</td>
-                            <td>{{ log.message }}</td>
+                            <td>
+                                {% if log.user %}
+                                    {{ log.user.friendlyName }}
+                                {% elseif log.is_console %}
+                                    <i>{{ 'system'|t('emails') }}
+                                {% else %}
+                                    <i>{{ 'deleted user'|t('emails') }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ log.emails|length }}
+                            </td>
                             <td>{{ log.dateCreated|date('d/m/Y H:i:s') }}</td>
+                            <td class="actions-cell">
+                                <a href="#" class="js-view btn btn-small" data-id="{{ log.id }}">{{ 'View emails'|t('emails') }}</a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -83,7 +99,48 @@
     {% else %}
         <p>{{ 'No logs found'|t('emails') }}</p>
     {% endif %}
+    <div id="emails-modal" class="modal elementselectormodal" style="display:none">
+        <div class="body">
+            <div class="content">
+            </div>
+        </div>
+        <div class="footer">
+            <div class="buttons right">
+                <button type="button" class="btn js-close" tabindex="0">{{ 'Close'|t('app') }}</button>
+            </div>
+        </div>
+    </div>
     {% include "emails/_includes/js-errors" %}
     {% include "emails/_includes/js-logs" with {deleteAction: 'emails/cp-shots/delete-logs'} %}
 {% endblock %}
+
+{% js %}
+    var modal = new Garnish.Modal($('#emails-modal'), {
+        autoShow: false
+    });
+    $('#emails-modal .js-close').click(function(){
+        modal.hide();
+    });
+    function formatEmails(emails) {
+        var html = '';
+        for (var i in emails) {
+            html += '<div><a href=mailto:' + i + '>' + i + (emails[i] ? ' (' + emails[i] + ')' : '') + '</a></div>'
+        }
+        return html;
+    }
+    $('.js-view').click(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: Craft.getActionUrl('emails/cp-shots/log-emails'),
+            data: {id: $(this).data('id')}
+        }).done(function (data) {
+            if (data.emails.length == 0) {
+                $('#emails-modal .content').html('<p>{{ "No emails for this log"|t("emails") }}</p>');
+            } else {
+                $('#emails-modal .content').html(formatEmails(data.emails));
+            }
+            modal.show();
+        })
+    });
+{% endjs %}
 

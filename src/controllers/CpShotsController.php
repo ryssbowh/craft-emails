@@ -5,6 +5,7 @@ namespace Ryssbowh\CraftEmails\controllers;
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\Models\Email;
 use Ryssbowh\CraftEmails\Models\EmailShot;
+use Ryssbowh\CraftEmails\assets\EmailsAssetBundle;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
@@ -24,6 +25,7 @@ class CpShotsController extends Controller
 
     public function actionIndex()
     {
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         return $this->renderTemplate('emails/shots', [
             'shots' => Emails::$plugin->emailShots->all()
         ]);
@@ -31,6 +33,7 @@ class CpShotsController extends Controller
 
     public function actionAddShot(?EmailShot $shot = null)
     {
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         if (!$shot) {
             $shot = new EmailShot;
         }
@@ -120,6 +123,7 @@ class CpShotsController extends Controller
 
     public function actionQuickShot(?EmailShot $shot = null)
     {
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         if (!$shot) {
             $shot = new EmailShot;
         }
@@ -156,6 +160,7 @@ class CpShotsController extends Controller
 
     public function actionLogs(int $id)
     {
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         $shot = Emails::$plugin->emailShots->getById($id);
         $orderSide = $this->request->getParam('orderSide', 'desc');
         $order = $this->request->getParam('order', 'dateCreated');
@@ -176,6 +181,15 @@ class CpShotsController extends Controller
         Emails::$plugin->emailShots->deleteLogs($shot, $ids);
         \Craft::$app->session->setNotice(\Craft::t('emails', 'Logs have been deleted.'));
         return true;
+    }
+
+    public function actionLogEmails()
+    {
+        $id = $this->request->getRequiredParam('id');
+        $log = Emails::$plugin->emailShots->getLogById($id);
+        return $this->asJson([
+            'emails' => $log->emails
+        ]);
     }
 
     protected function allEmails()

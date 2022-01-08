@@ -12,17 +12,21 @@ use Craft;
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\Events\EmailEvent;
 use Ryssbowh\CraftEmails\Models\Email;
+use Ryssbowh\CraftEmails\Models\EmailLog;
 use Ryssbowh\CraftEmails\Records\Email as EmailRecord;
-use Ryssbowh\CraftEmails\Records\EmailLog;
+use Ryssbowh\CraftEmails\Records\EmailLog as EmailLogRecord;
 use Ryssbowh\CraftEmails\exceptions\EmailException;
 use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use craft\base\Component;
 use craft\events\ConfigEvent;
 use craft\events\RebuildConfigEvent;
 use craft\helpers\StringHelper;
+use craft\helpers\Template;
 use craft\mail\Message;
+use craft\web\View;
 use yii\base\Event;
 use yii\data\Pagination;
+use yii\helpers\Markdown;
 
 class EmailsService extends Component
 {
@@ -120,7 +124,7 @@ class EmailsService extends Component
      */
     public function getLogs(Email $email, string $order = 'dateCreated', string $orderSide = 'desc'): array
     {
-        $query = EmailLog::find()->where(['email_id' => $email->id])->orderBy([$order => $orderSide == 'asc' ? SORT_ASC : SORT_DESC]);
+        $query = EmailLogRecord::find()->where(['email_id' => $email->id])->orderBy([$order => $orderSide == 'asc' ? SORT_ASC : SORT_DESC]);
         $countQuery = clone $query;
         $pages = new Pagination([
             'defaultPageSize' => 10,
@@ -136,6 +140,21 @@ class EmailsService extends Component
     }
 
     /**
+     * Get an email log by id
+     * 
+     * @param  int    $id
+     * @return EmailLog
+     */
+    public function getLogById(int $id): EmailLog
+    {
+        $log = EmailLogRecord::find()->where(['id' => $id])->one();
+        if (!$log) {
+            throw EmailException::noLogId($id);
+        }
+        return $log->toModel();
+    }
+
+    /**
      * Delete logs for an email
      * 
      * @param  Email  $email
@@ -144,24 +163,79 @@ class EmailsService extends Component
     public function deleteLogs(Email $email, ?array $ids = null)
     {
         if (is_array($ids)) {
-            $logs = EmailLog::find()->where(['in', 'id', $ids])->andWhere(['email_id' => $email->id])->all();
+            $logs = EmailLogRecord::find()->where(['in', 'id', $ids])->andWhere(['email_id' => $email->id])->all();
             foreach ($logs as $log) {
                 $log->delete();
             }
         } else {
             \Craft::$app->getDb()->createCommand()
-                ->delete(EmailLog::tableName(), ['email_id' => $email->id])
+                ->delete(EmailLogRecord::tableName(), ['email_id' => $email->id])
                 ->execute();
         }
+    }
+
+    /**
+     * Resend an email from a log
+     * 
+     * @param  EmailLog $log
+     * @return bool
+     */
+    public function resend(EmailLog $log): bool
+    {
+        $mailer = \Craft::$app->mailer;
+        $message = \Craft::createObject([
+            'class' => $mailer->messageClass,
+            'mailer' => $mailer
+        ]);
+        $message->setSubject($log->subject);
+        $message->setTextBody(strip_tags($log->uncompressedContent));
+        $message->setFrom($log->from);
+        $message->setReplyTo($log->replyTo);
+        $message->setBcc($log->bcc);
+        $message->setCc($log->cc);
+        $message->setTo($log->to);
+        foreach ($log->attachementsElements as $asset) {
+            $fullPath = \Craft::getAlias($asset->volume->path) . '/' . $asset->path;
+            $message->attach($fullPath, [
+                'fileName' => $asset->title
+            ]);
+        }
+
+        // Is there a custom HTML template set?
+        if (Craft::$app->getEdition() === Craft::Pro && $mailer->template) {
+            $template = $mailer->template;
+            $templateMode = View::TEMPLATE_MODE_SITE;
+        } else {
+            // Default to the _special/email.html template
+            $template = '_special/email';
+            $templateMode = View::TEMPLATE_MODE_CP;
+        }
+
+        try {
+            $html = \Craft::$app->view->renderTemplate($template, array_merge($message->variables ?? [], [
+                'body' => Template::raw(Markdown::process($log->uncompressedContent)),
+            ]), $templateMode);
+            $message->setHtmlBody($html);
+        } catch (\Throwable $e) {
+            // Just log it and don't worry about the HTML body
+            \Craft::warning('Error rendering email template: ' . $e->getMessage(), __METHOD__);
+            \Craft::$app->getErrorHandler()->logException($e);
+        }
+        if ($mailer->send($message)) {
+            $message->key = $log->email->key;
+            $this->afterSent($message, $log->attachements);
+            return true;
+        }
+        return false;
     }
 
     /**
      * Operations after an email is sent, increment sent counter, save logs.
      * 
      * @param  Message $message
-     * @param  bool    $isSuccessful
+     * @param  ?array $attachements override attachements
      */
-    public function afterSent(Message $message, bool $isSuccessful)
+    public function afterSent(Message $message, ?array $attachements = null)
     {
         if (!$message->key) {
             return;
@@ -177,18 +251,36 @@ class EmailsService extends Component
         $record->sent = $record->sent + 1;
         $record->save(false);
         if ($record->saveLogs) {
-            $to = (array) $message->getTo();
-            $bcc = (array) $message->getBcc();
-            $cc = (array) $message->getCc();
             $children = $message->getSwiftMessage()->getChildren();
-            $content = isset($children[1]) ? $children[1]->getBody() : $children[0]->getBody();
-            $log = new EmailLog([
+            $html = $text = null;
+            foreach ($children as $child) {
+                if (get_class($child) != 'Swift_MimePart') {
+                    continue;
+                }
+                if ($child->getHeaders()->get('content-type')->getValue() == 'text/html') {
+                    $html = $child->getBody();
+                }
+                if ($child->getHeaders()->get('content-type')->getValue() == 'text/plain') {
+                    $text = $child->getBody();
+                }
+            }
+            $content = $html ?? $text ?? '';
+            if ($attachements === null) {
+                $attachements = $email->attachements; 
+            }
+            $user = \Craft::$app->getUser()->getIdentity();
+            $log = new EmailLogRecord([
                 'email_id' => $record->id,
                 'subject' => $message->getSubject(),
-                'email' => implode(',', array_keys($to)),
-                'bcc' => implode(',', array_keys($bcc)),
-                'cc' => implode(',', array_keys($cc)),
-                'content' => gzdeflate($content)
+                'to' => (array) $message->getTo(),
+                'bcc' => (array) $message->getBcc(),
+                'cc' => (array) $message->getCc(),
+                'content' => Emails::$plugin->settings->compressLogs ? gzdeflate($content) : $content,
+                'from' => $message->getFrom(),
+                'attachements' => $attachements,
+                'replyTo' => $message->getReplyTo(),
+                'user_id' => $user ? $user->id : null,
+                'is_console' => \Craft::$app->request->isConsoleRequest
             ]);
             $log->save(false);
         }

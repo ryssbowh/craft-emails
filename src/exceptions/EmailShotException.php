@@ -9,6 +9,11 @@ class EmailShotException extends \Exception
         return new static('Email shot with id '.$id.' doesn\'t exist');
     }
 
+    public static function noLogId(int $id)
+    {
+        return new static('Email shot log with id '.$id.' doesn\'t exist');
+    }
+
     public static function noHandle(string $handle)
     {
         return new static('Email shot with handle '.$handle.' doesn\'t exist');

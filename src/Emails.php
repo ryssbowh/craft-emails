@@ -102,11 +102,11 @@ class Emails extends Plugin
                 $item['subnav'] = [
                     'emails' => [
                         'url' => 'emails/list',
-                        'label' => \Craft::t('themes', 'Emails'),
+                        'label' => \Craft::t('emails', 'Emails'),
                     ],
                     'shots' => [
                         'url' => 'emails/shots',
-                        'label' => \Craft::t('themes', 'Email shots'),
+                        'label' => \Craft::t('emails', 'Email shots'),
                     ]
                 ];
             }
@@ -164,7 +164,7 @@ class Emails extends Plugin
             Emails::$plugin->emails->modifyMessage($event->message);
         });
         Event::on(BaseMailer::class, BaseMailer::EVENT_AFTER_SEND, function ($event) {
-            Emails::$plugin->emails->afterSent($event->message, $event->isSuccessful);
+            Emails::$plugin->emails->afterSent($event->message);
         });
     }
 
@@ -197,7 +197,7 @@ class Emails extends Plugin
             function (RegisterUserPermissionsEvent $event) {
                 $event->permissions[\Craft::t('emails', 'Emails')] = [
                     'addDeleteEmailTemplates' => [
-                        'label' => \Craft::t('emails', 'Add and delete email templates')
+                        'label' => \Craft::t('emails', 'Add and delete emails')
                     ],
                     'modifyEmailContent' => [
                         'label' => \Craft::t('emails', 'Modify emails content')
@@ -211,8 +211,11 @@ class Emails extends Plugin
                     'deleteEmailLogs' => [
                         'label' => \Craft::t('emails', 'Delete emails logs')
                     ],
+                    'sendEmails' => [
+                        'label' => \Craft::t('emails', 'Send emails')
+                    ],
                     'manageEmailShots' => [
-                        'label' => \Craft::t('emails', 'Manage and send email shots')
+                        'label' => \Craft::t('emails', 'Manage email shots')
                     ]
                 ];
             }
