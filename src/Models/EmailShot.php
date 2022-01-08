@@ -214,7 +214,7 @@ class EmailShot extends Model
     public function getDescription(): string
     {
         if ($this->name) {
-            return "email shot " . $this->name;
+            return "email shot '" . $this->name . "'";
         }
         return "quick email shot";
     }
