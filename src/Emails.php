@@ -8,10 +8,13 @@ use Ryssbowh\CraftEmails\Models\Settings;
 use Ryssbowh\CraftEmails\Services\EmailShotsService;
 use Ryssbowh\CraftEmails\Services\EmailSourceService;
 use Ryssbowh\CraftEmails\Services\EmailsService;
+use Ryssbowh\CraftEmails\Services\MailchimpService;
 use Ryssbowh\CraftEmails\emailSources\AllUsersEmailSource;
+use Ryssbowh\CraftEmails\emailSources\MailchimpEmailSource;
 use Ryssbowh\CraftEmails\emailSources\UserGroupEmailSource;
 use craft\base\Plugin;
 use craft\events\RebuildConfigEvent;
+use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterEmailMessagesEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -21,6 +24,7 @@ use craft\services\ProjectConfig;
 use craft\services\SystemMessages;
 use craft\services\UserPermissions;
 use craft\services\Utilities;
+use craft\utilities\ClearCaches;
 use craft\utilities\SystemMessages as SystemMessagesUtility;
 use craft\web\UrlManager;
 use craft\web\twig\variables\CraftVariable;
@@ -60,7 +64,8 @@ class Emails extends Plugin
         $this->setComponents([
             'emails' => EmailsService::class,
             'emailSources' => EmailSourceService::class,
-            'emailShots' => EmailShotsService::class
+            'emailShots' => EmailShotsService::class,
+            'mailchimp' => MailchimpService::class,
         ]);
 
         $this->registerProjectConfig();
@@ -70,6 +75,7 @@ class Emails extends Plugin
         $this->registerTwigVariables();
         $this->registerPermissions();
         $this->registerEmailSources();
+        $this->registerClearCacheEvent();
 
         if (Craft::$app->request->getIsConsoleRequest()) {
             $this->controllerNamespace = 'Ryssbowh\\CraftEmails\\console';
@@ -116,6 +122,22 @@ class Emails extends Plugin
     }
 
     /**
+     * Registers Clear cache options
+     */
+    protected function registerClearCacheEvent()
+    {
+        Event::on(ClearCaches::class, ClearCaches::EVENT_REGISTER_CACHE_OPTIONS, function (RegisterCacheOptionsEvent $event) {
+            $event->options[] = [
+                'key' => 'mailchimp_lists',
+                'label' => Craft::t('emails', 'Mailchimp lists'),
+                'action' => function () {
+                    Emails::$plugin->mailchimp->clearCaches();
+                }
+            ];
+        });
+    }
+
+    /**
      * Register default email sources
      */
     protected function registerEmailSources()
@@ -129,6 +151,11 @@ class Emails extends Plugin
                     $e->add(new UserGroupEmailSource([
                         'group' => $group
                     ]));
+                }
+                foreach (Emails::$plugin->mailchimp->lists as $list) {
+                    $e->add(new MailchimpEmailSource([
+                        'id' => $list['id']
+                    ]));   
                 }
             }
         );

@@ -38,6 +38,27 @@
 #emails-modal, #content-modal {
     max-width:  100px;
 }
+#emails-modal .body, #content-modal .body{
+    overflow-y: auto;
+}
 .justify-between {
     justify-content: space-between;
+}
+.field.third {
+    width: 33.3%;
+}
+.field.quarter {
+    width: 25%;
+}
+.field.half {
+    width: 50%;
+}
+.align-base {
+    align-items: baseline;
+}
+.email-element {
+    margin-top: 7px;
+}
+.email-element:first-child {
+    margin-top: 12px;
 }

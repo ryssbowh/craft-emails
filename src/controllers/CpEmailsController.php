@@ -22,6 +22,11 @@ class CpEmailsController extends Controller
         return true;
     }
 
+    /**
+     * Email dashboard action
+     * 
+     * @return Response
+     */
     public function actionIndex()
     {
         \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
@@ -35,6 +40,11 @@ class CpEmailsController extends Controller
         ]);
     }
 
+    /**
+     * Add email action
+     * 
+     * @return Response
+     */
     public function actionAdd()
     {
         $this->requirePermission('addDeleteEmailTemplates');
@@ -45,6 +55,12 @@ class CpEmailsController extends Controller
         ]);
     }
 
+    /**
+     * Edit email content action
+     *
+     * @param  int $id
+     * @return Response
+     */
     public function actionEditContent(int $id)
     {
         $this->requirePermission('modifyEmailContent');
@@ -55,6 +71,12 @@ class CpEmailsController extends Controller
         ]);
     }
 
+    /**
+     * Edit email config action
+     *
+     * @param  int $id
+     * @return Response
+     */
     public function actionEditConfig(int $id)
     {
         $this->requirePermission('modifyEmailConfig');
@@ -65,6 +87,12 @@ class CpEmailsController extends Controller
         ]);
     }
 
+    /**
+     * Delete email action
+     *
+     * @param  int $id
+     * @return Response
+     */
     public function actionDelete(int $id)
     {
         $this->requirePermission('addDeleteEmailTemplates');
@@ -90,6 +118,11 @@ class CpEmailsController extends Controller
         return $this->redirect(UrlHelper::cpUrl('emails/list'));
     }
 
+    /**
+     * Save config action
+     * 
+     * @return Response
+     */
     public function actionSaveConfig()
     {
         $this->requirePostRequest();
@@ -115,6 +148,11 @@ class CpEmailsController extends Controller
         ]);
     }
 
+    /**
+     * Save email content action
+     * 
+     * @return Response
+     */
     public function actionSaveContent()
     {
         $this->requirePostRequest();
@@ -132,6 +170,11 @@ class CpEmailsController extends Controller
         return $this->redirect(UrlHelper::cpUrl('emails'));
     }
 
+    /**
+     * Delete email logs action
+     * 
+     * @return Response
+     */
     public function actionDeleteLogs()
     {
         $this->requirePermission('deleteEmailLogs');
@@ -143,6 +186,11 @@ class CpEmailsController extends Controller
         return true;
     }
 
+    /**
+     * View email logs action
+     * 
+     * @return Response
+     */
     public function actionLogs(int $emailId)
     {
         \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
@@ -158,6 +206,11 @@ class CpEmailsController extends Controller
         ]);
     }
 
+    /**
+     * View email action
+     * 
+     * @return Response
+     */
     public function actionView()
     {
         $this->requirePermission('seeEmailLogs');
@@ -166,6 +219,11 @@ class CpEmailsController extends Controller
         return $this->asJson($log->toArray());
     }
 
+    /**
+     * Resend email action
+     * 
+     * @return Response
+     */
     public function actionResend()
     {
         $this->requirePermission('sendEmails');

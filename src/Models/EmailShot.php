@@ -101,9 +101,18 @@ class EmailShot extends Model
                 }
             }, 'on' => 'create'],
             ['emails', function () {
-                foreach ($this->emails as $email) {
+                if ($names = \Craft::$app->request->getBodyParam('names')) {
+                    $emails = [];
+                    foreach ($this->emails as $index => $email) {
+                        if ($email) {
+                            $emails[$email] = $names[$index];
+                        }
+                    }
+                    $this->emails = $emails;
+                }
+                foreach ($this->emails as $email => $name) {
                     if ($email and !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        $this->addError('emails', \Craft::t('emails', 'Email ' . $email . ' is not a valid email'));
+                        $this->addError('emails', \Craft::t('yii', '{attribute} is not a valid email address.', ['attribute' => $email]));
                     }
                 }
             }],
@@ -111,20 +120,34 @@ class EmailShot extends Model
                 foreach ($this->users as $user) {
                     $elem = User::find()->id($user)->one();
                     if (!$elem) {
-                        $this->addError('users', \Craft::t('emails', 'User ' . $user . " doesn't exist"));
+                        $this->addError('users', \Craft::t('emails', "User {user} doesn't exist", ['user' => $user]));
                     }
                 }
             }],
             ['sources', function () {
                 foreach ($this->sources as $source) {
                     if (!Emails::$plugin->emailSources->has($source)) {
-                        $this->addError('sources', \Craft::t('emails', 'Source ' . $source . " doesn't exist"));
+                        $this->addError('sources', \Craft::t('emails', "Source {source} doesn't exist", ['source' => $source]));
                     }
                 }
             }]
         ];
     }
 
+    public function __serialize(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'handle' => $this->handle,
+            'sources' => $this->sources,
+            'users' => $this->users,
+            'emails' => $this->emails,
+            'email_id' => $this->email_id,
+            'useQueue' => $this->useQueue,
+            'saveLogs' => $this->saveLogs
+        ];
+    }
     /**
      * Users setter
      * 
@@ -259,21 +282,6 @@ class EmailShot extends Model
         }
         foreach ($this->sourceObjects as $source) {
             $emails = array_merge($emails, $source->emails);
-        }
-        if (Emails::$plugin->settings->removeShotDuplicates) {
-            $allAddresses = [];
-            $filtered = [];
-            foreach ($emails as $address => $name) {
-                if (is_int($address)) {
-                    $address = $name;
-                    $name = null;
-                }
-                if (!in_array($address, $allAddresses)) {
-                    $filtered[$address] = $name;
-                    $allAddresses[] = $address;
-                }
-            }
-            $emails = $filtered;
         }
         return $emails;
     }

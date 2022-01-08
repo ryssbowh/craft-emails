@@ -58,12 +58,12 @@
             options: allSources,
             values: shot.sources,
             label: 'Sources'|t('emails'),
-            fieldClass: 'third',
+            fieldClass: 'quarter',
             name: 'sources',
             errors: errors['sources'] ?? []
         })
     }}
-    <div class="field third">
+    <div class="field quarter">
         {{ hiddenInput(name, '') }}
         <div class="heading">
             <label>{{ 'Users'|t('emails') }}</label>
@@ -90,15 +90,16 @@
             </div>
         </div>
     </div>
-    <div class="field third">
+    <div class="field">
         <div class="heading">
             <label>{{ 'Emails'|t('emails') }}</label>
         </div>
         <div class="elementselect" id="field-emails">
             <div class="elements">
-                {% for email in shot.emails %}
+                {% for email, name in shot.emails %}
                     <div class="email-element flex flex-nowrap">
-                        <input name="emails[]" type="email" class="text" value="{{ email }}">
+                        <input name="emails[]" type="email" class="text" value="{{ email }}" placeholder="{{ 'Email'|t('emails') }}">
+                        <input name="names[]" type="text" class="text" value="{{ name }}" placeholder="{{ 'Name'|t('emails') }}">
                         <button type="button" class="delete icon" title="Remove" aria-label="Remove"></button>
                     </div>
                 {% endfor %}
@@ -121,29 +122,13 @@
     on: shot.useQueue,
     instructions: "Send emails through the queue. the emails will be send in the background so you can do other things in the meantime."|t('emails')
 }) }}
-{{ forms.lightswitchField({
-    label: 'Save logs'|t('emails'),
-    name: 'saveLogs',
-    on: shot.saveLogs
-}) }}
-
-{% css %}
-    .field.third {
-        width: 33.3%;
-    }
-    .field.half {
-        width: 50%;
-    }
-    .align-base {
-        align-items: baseline;
-    }
-    .email-element {
-        margin-top: 7px;
-    }
-    .email-element:first-child {
-        margin-top: 12px;
-    }
-{% endcss %}
+{% if mode == 'create' %}
+    {{ forms.lightswitchField({
+        label: 'Save logs'|t('emails'),
+        name: 'saveLogs',
+        on: shot.saveLogs
+    }) }}
+{% endif %}
 
 {% js %}
     new Craft.BaseElementSelectInput({{ jsSettings|json_encode|raw }});
@@ -153,10 +138,11 @@
         });
     });
     $('.js-add-email').click(function () {
-        var elem = $('<div class="email-element flex flex-nowrap"><input name="emails[]" type="email" class="text"><button type="button" class="delete icon" title="Remove" aria-label="Remove"></button></div>');
+        var elem = $('<div class="email-element flex flex-nowrap"><input name="emails[]" type="email" class="text" placeholder="{{ "Email"|t("emails") }}"><input name="names[]" type="text" class="text" placeholder="{{ "Name"|t("emails") }}"><button type="button" class="delete icon" title="Remove" aria-label="Remove"></button></div>');
         elem.hide();
         $('#field-emails .elements').append(elem);
         elem.slideDown('fast');
+        elem.find('input').first().focus();
     });
 {% endjs %}
 

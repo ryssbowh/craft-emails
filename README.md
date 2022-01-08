@@ -67,10 +67,11 @@ Define a new email shots using the dashboard :
 
 You can either save an email shot for future use, or create a quick shot that will be sent instantly.
 
-Each of them will require an email, and some emails to send to, which can come from 3 places :
+Each of them will require an email, and some emails to send to, which can come from 4 places :
 - A source : A source of emails, the default comes with a "All users" and a source for each user group. More source can be defined
 - Users : Choose users
 - Email : Enter emails
+- Mailchimp lists : Enter your api key in the settings to enable your lists. Lists will be cached for 30min by default
 
 Email shots can use the queue to send emails, using the queue present advantages as emails will be sent in the background, but you do need to run the queue manually if you're scheduling email shots.
 
@@ -150,4 +151,3 @@ Craft >= 3.5
 ## Roadmap
 
 - Add a trigger system to send emails automatically when something happens on the system
-- mailchimp lists integration, as sources

@@ -207,7 +207,7 @@ class EmailShotsService extends Component
      */
     public function getRecordById(int $id): EmailShotRecord
     {
-        $shot = EmailShotRecord::find(['id' => $id])->one();
+        $shot = EmailShotRecord::find()->where(['id' => $id])->one();
         if (!$shot) {
             throw EmailShotException::noIdRecord($id);
         }

@@ -6,9 +6,9 @@
 
 {% block toolbar %}
     {% if currentUser.can('sendEmails') %}
-        <a href="{{ url('emails/quick-shot') }}" class="btn submit">{{ 'Quick shot'|t('emails') }}</a>
+        <a href="{{ url('emails/quick-shot') }}" class="btn submit">{{ 'Quick email shot'|t('emails') }}</a>
     {% endif %}
-    <a href="{{ url('emails/shots/add') }}" class="btn submit">{{ 'New shot'|t('emails') }}</a>
+    <a href="{{ url('emails/shots/add') }}" class="btn submit">{{ 'New email shot'|t('emails') }}</a>
 {% endblock %}
 
 {% block content %}
@@ -59,9 +59,12 @@
                             </td>
                             <td class="actions-cell">
                                 <div class="flex flex-nowrap justify-between">
-                                    {% if shot.email and currentUser.can('sendEmails') %}
-                                        <button class="btn btn-small js-send" data-id="{{ shot.id }}">{{ 'Send now'|t('emails') }}<div class="spinner"></div></button>
-                                    {% endif %}
+                                    <div>
+                                        <a href="#" class="js-view btn btn-small" data-id="{{ shot.id }}">{{ 'View emails'|t('emails') }}</a>
+                                        {% if shot.email and currentUser.can('sendEmails') %}
+                                            <button class="btn btn-small js-send" data-id="{{ shot.id }}">{{ 'Send now'|t('emails') }}<div class="spinner"></div></button>
+                                        {% endif %}
+                                    </div>
                                     <div>
                                         {% if currentUser.can('seeEmailLogs') and shot.saveLogs %}
                                             <a href="{{ url('emails/shots/logs/' ~ shot.id ) }}" title="{{ 'View logs'|t('emails') }}" class="icon logs"></a>
@@ -78,10 +81,48 @@
     {% else %}
         <p>{{ 'No email shots found'|t('emails') }}</p>
     {% endif %}
+    <div id="emails-modal" class="modal elementselectormodal" style="display:none">
+        <div class="body">
+            <div class="content">
+            </div>
+        </div>
+        <div class="footer">
+            <div class="buttons right">
+                <button type="button" class="btn js-close" tabindex="0">{{ 'Close'|t('app') }}</button>
+            </div>
+        </div>
+    </div>
     {% include "emails/_includes/js-errors" %}
 {% endblock %}
 
 {% js %}
+    var modal = new Garnish.Modal($('#emails-modal'), {
+        autoShow: false
+    });
+    $('#emails-modal .js-close').click(function(){
+        modal.hide();
+    });
+    function formatEmails(emails) {
+        var html = '';
+        for (var i in emails) {
+            html += '<div><a href=mailto:' + i + '>' + i + (emails[i] ? ' (' + emails[i] + ')' : '') + '</a></div>'
+        }
+        return html;
+    }
+    $('.js-view').click(function(e){
+        e.preventDefault();
+        $.ajax({
+            url: Craft.getActionUrl('emails/cp-shots/shot-emails'),
+            data: {id: $(this).data('id')}
+        }).done(function (data) {
+            if (data.emails.length == 0) {
+                $('#emails-modal .content').html('<p>{{ "No emails for this shot"|t("emails") }}</p>');
+            } else {
+                $('#emails-modal .content').html(formatEmails(data.emails));
+            }
+            modal.show();
+        })
+    });
     $('.js-delete').click(function (e) {
         e.preventDefault();
         let id = $(this).data('id');

@@ -29,8 +29,10 @@ class AllUsersEmailSource extends Component implements EmailSourceInterface
      */
     public function getEmails(): array
     {
-        return array_map(function ($user) {
-            return $user->email;
-        }, User::find()->all());
+        $emails = [];
+        foreach (User::find()->all() as $user) {
+            $emails[$user->email] = $user->friendlyName;
+        }
+        return $emails;
     }
 }

@@ -19,7 +19,12 @@ interface EmailSourceInterface
     public function getHandle(): string;
 
     /**
-     * Emails getter
+     * Emails getter, must return an array of this form :
+     *
+     * [
+     *     'email@domain.com' => 'Name',
+     *     'email2@domain.com' => null
+     * ]
      * 
      * @return array
      */

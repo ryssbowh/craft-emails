@@ -10,6 +10,7 @@ use Ryssbowh\CraftThemes\assets\DisplayAssets;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use yii\web\ForbiddenHttpException;
+use yii\web\Response;
 
 class CpShotsController extends Controller
 {
@@ -23,6 +24,11 @@ class CpShotsController extends Controller
         return true;
     }
 
+    /**
+     * Shots dashboard action
+     * 
+     * @return Response
+     */
     public function actionIndex()
     {
         \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
@@ -31,6 +37,11 @@ class CpShotsController extends Controller
         ]);
     }
 
+    /**
+     * Add shot action
+     * 
+     * @return Response
+     */
     public function actionAddShot(?EmailShot $shot = null)
     {
         \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
@@ -45,12 +56,23 @@ class CpShotsController extends Controller
         ]);
     }
 
+    /**
+     * Edit shot action
+     *
+     * @param  int $id
+     * @return Response
+     */
     public function actionEditShot(int $id)
     {
         $shot = Emails::$plugin->emailShots->getById($id);
         return $this->actionAddShot($shot);
     }
 
+    /**
+     * Save shot action
+     * 
+     * @return Response
+     */
     public function actionSaveShot()
     {
         if ($id = \Craft::$app->request->getBodyParam('id')) {
@@ -77,6 +99,11 @@ class CpShotsController extends Controller
         return $this->actionAddShot($shot);
     }
 
+    /**
+     * Delete shot action
+     * 
+     * @return Response
+     */
     public function actionDelete()
     {
         $id = $this->request->getRequiredParam('id');
@@ -102,6 +129,11 @@ class CpShotsController extends Controller
         return $this->redirect(UrlHelper::cpUrl('emails/shots'));
     }
 
+    /**
+     * Send shot action
+     * 
+     * @return Response
+     */
     public function actionSend()
     {
         $id = $this->request->getRequiredParam('id');
@@ -121,6 +153,11 @@ class CpShotsController extends Controller
         return $this->redirect(UrlHelper::cpUrl('emails/shots'));
     }
 
+    /**
+     * Add quick shot action
+     * 
+     * @return Response
+     */
     public function actionQuickShot(?EmailShot $shot = null)
     {
         \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
@@ -135,6 +172,11 @@ class CpShotsController extends Controller
         ]);
     }
 
+    /**
+     * Send quick shot action
+     * 
+     * @return Response
+     */
     public function actionSendQuickShot()
     {
         $users = $this->request->getBodyParam('users', []);
@@ -158,6 +200,12 @@ class CpShotsController extends Controller
         return $this->actionQuickShot($shot);
     }
 
+    /**
+     * Shot logs action
+     *
+     * @param  int $id
+     * @return Response
+     */
     public function actionLogs(int $id)
     {
         \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
@@ -172,6 +220,11 @@ class CpShotsController extends Controller
         ]);
     }
 
+    /**
+     * Delete shot logs action
+     * 
+     * @return Response
+     */
     public function actionDeleteLogs()
     {
         $this->requirePermission('deleteEmailLogs');
@@ -183,6 +236,11 @@ class CpShotsController extends Controller
         return true;
     }
 
+    /**
+     * Get shot log emails action
+     * 
+     * @return Response
+     */
     public function actionLogEmails()
     {
         $id = $this->request->getRequiredParam('id');
@@ -192,7 +250,26 @@ class CpShotsController extends Controller
         ]);
     }
 
-    protected function allEmails()
+    /**
+     * Get shot emails action
+     * 
+     * @return Response
+     */
+    public function actionShotEmails()
+    {
+        $id = $this->request->getRequiredParam('id');
+        $shot = Emails::$plugin->emailShots->getById($id);
+        return $this->asJson([
+            'emails' => $shot->allEmails
+        ]);
+    }
+
+    /**
+     * Get all emails
+     * 
+     * @return array
+     */
+    protected function allEmails(): array
     {
         $emails = [];
         foreach (Emails::$plugin->emails->all() as $email) {
@@ -201,6 +278,11 @@ class CpShotsController extends Controller
         return $emails;
     }
 
+    /**
+     * Get all sources
+     * 
+     * @return array
+     */
     protected function allSources(): array
     {
         return array_map(function ($source) {

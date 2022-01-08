@@ -35,8 +35,10 @@ class UserGroupEmailSource extends Component implements EmailSourceInterface
      */
     public function getEmails(): array
     {
-        return array_map(function ($user) {
-            return $user->email;
-        }, User::find()->group($this->group)->all());
+        $emails = [];
+        foreach (User::find()->group($this->group)->all() as $user) {
+            $emails[$user->email] = $user->friendlyName;
+        }
+        return $emails;
     }
 }

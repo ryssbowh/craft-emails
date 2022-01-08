@@ -20,10 +20,23 @@
         name: 'configDriven'
     })
 }}
-{{
-    forms.lightswitchField({
-        name: 'removeShotDuplicates',
-        on: settings.removeShotDuplicates,
-        label: 'Remove duplicated emails in email shots'|t('emails')
-    })
-}}
+
+{{ forms.autosuggestField({
+    label: 'Mailchimp API Key'|t('emails'),
+    type: 'text',
+    name: 'mailchimpApiKey',
+    value: settings.mailchimpApiKey,
+    suggestEnvVars: true,
+    errors: errors['mailchimpApiKey'] ?? []
+}) }}
+
+{{ forms.textField({
+    label: 'Mailchimp Cache duration'|t('emails'),
+    type: 'number',
+    instructions: '0 means forever'|t('emails'),
+    min: 0,
+    unit: 'minutes'|t('emails'),
+    name: 'mailchimpCacheDuration',
+    value: settings.mailchimpCacheDuration,
+    errors: errors['mailchimpCacheDuration'] ?? []
+}) }}

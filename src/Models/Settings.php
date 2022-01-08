@@ -20,12 +20,17 @@ class Settings extends Model
     /**
      * @var boolean
      */
-    public $removeShotDuplicates = true;
+    public $compressLogs = true;
 
     /**
-     * @var boolean
+     * @var string
      */
-    public $compressLogs = false;    
+    public $mailchimpApiKey;
+
+    /**
+     * @var integer
+     */
+    public $mailchimpCacheDuration = 60;
 
     /**
      * Get all parameters that can be considered config
