@@ -97,29 +97,23 @@ Event::on(
 
 Email sources must implement `EmailSourceInterface`. Exceptions will be thrown when registering sources which handles are already defined.
 
-### Events
+### Variables
 
-Before sending shot :
+If the email you send with a shot expects bespoke variables, you will need to define them manually before the shot is sent :
+
 ```
 Event::on(
     EmailShotsService::class,
     EmailShotsService::EVENT_BEFORE_SEND,
     function (SendEmailShotEvent $e) {
-        $e->send = false; //Stop the sending
+        $e->shot->variables = [
+            'var' => 'value'
+        ];
     }
 );
 ```
 
-After sending shot :
-```
-Event::on(
-    EmailShotsService::class,
-    EmailShotsService::EVENT_AFTER_SEND,
-    function (SendEmailShotEvent $e) {
-    }
-);
-```
-
+For global variables, refer to the [documentation](https://craftcms.com/docs/3.x/dev/global-variables.html#craft)
 
 ## Commands
 
