@@ -79,7 +79,7 @@ Email shots can use the queue to send emails, using the queue present advantages
 
 See what email shot has been sent to which email with the logs :
 
-![Config](/images/shots-logs.png)
+![Shot logs](/images/shot-logs.png)
 
 ### Define more sources
 
@@ -116,6 +116,8 @@ Event::on(
 For global variables, refer to the [documentation](https://craftcms.com/docs/3.x/dev/global-variables.html#craft)
 
 ## Commands
+
+Send an email shot :
 
 `./craft emails/shot/send shot-handle`
 
