@@ -121,7 +121,7 @@ For global variables, refer to the [documentation](https://craftcms.com/docs/3.x
 
 ## Permissions
 
-6 new permissions :
+7 new permissions :
 
 - Access Emails (under General)
 - Add and delete email templates
@@ -132,6 +132,16 @@ For global variables, refer to the [documentation](https://craftcms.com/docs/3.x
 - Manage email shots
 
 To add attachements users will need "View volume" and potentially "View files uploaded by other users" for one or several volumes.
+
+## Requirements
+
+php >= 7.4  
+Craft >= 3.5  
+[Redactor plugin](https://plugins.craftcms.com/redactor), this is automatically installed by composer but doesn't need to be installed/enabled in the cms
+
+## Installation
+
+`composer require ryssbowh/craft-emails`
 
 ## Roadmap
 

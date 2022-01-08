@@ -271,17 +271,6 @@ class Emails extends Plugin
     }
 
     /**
-     * Install Redactor plugin before installing
-     * 
-     * @return bool
-     */
-    protected function beforeInstall(): bool
-    {
-        \Craft::$app->plugins->installPlugin('redactor');
-        return true;
-    }
-
-    /**
      * After theme is installed, creates system emails.
      */
     protected function afterInstall()

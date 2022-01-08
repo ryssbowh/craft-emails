@@ -49,7 +49,7 @@ class Settings extends Model
      */
     public function getRedactorConfigOptions(): array
     {
-        $options = ['' => \Craft::t('redactor', 'Default')];
+        $options = ['' => \Craft::t('emails', 'Default')];
         $path = \Craft::$app->getPath()->getConfigPath() . DIRECTORY_SEPARATOR . 'redactor';
         if (is_dir($path)) {
             $files = FileHelper::findFiles($path, [
