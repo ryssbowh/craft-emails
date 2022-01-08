@@ -21,7 +21,7 @@
         }) }}
     {% endif %}
     {{ forms.textField({
-        label: 'Key',
+        label: 'Key'|t('emails'),
         name: 'key',
         value: email.key,
         disabled: email.system == 1,
@@ -38,7 +38,7 @@
         id: 'lightswitch-plain'
     }) }}
     {{ forms.selectField({
-        label: 'Body Redactor config',
+        label: 'Body Redactor config'|t('emails'),
         instructions: 'You can save custom Redactor configs as .json files in config/redactor/'|t('emails'),
         options: settings.redactorConfigOptions,
         required: true,

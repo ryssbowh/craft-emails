@@ -7,6 +7,7 @@ use Ryssbowh\CraftEmails\Records\Email as EmailRecord;
 use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use craft\base\Model;
 use craft\elements\Asset;
+use craft\helpers\UrlHelper;
 use craft\redactor\Field as RedactorField;
 
 class Email extends Model
@@ -66,6 +67,14 @@ class Email extends Model
                 }
             }],
         ];
+    }
+
+    /**
+     * Get cp edit url
+     */
+    public function getCpEditUrl(): string
+    {
+        return UrlHelper::cpUrl('emails/edit/' . $this->id);
     }
 
     /**

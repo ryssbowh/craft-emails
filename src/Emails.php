@@ -3,8 +3,13 @@
 namespace Ryssbowh\CraftEmails;
 
 use Craft;
+use Ryssbowh\CraftEmails\Events\RegisterEmailSourcesEvent;
 use Ryssbowh\CraftEmails\Models\Settings;
+use Ryssbowh\CraftEmails\Services\EmailShotsService;
+use Ryssbowh\CraftEmails\Services\EmailSourceService;
 use Ryssbowh\CraftEmails\Services\EmailsService;
+use Ryssbowh\CraftEmails\emailSources\AllUsersEmailSource;
+use Ryssbowh\CraftEmails\emailSources\UserGroupEmailSource;
 use craft\base\Plugin;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterComponentTypesEvent;
@@ -53,7 +58,9 @@ class Emails extends Plugin
         self::$plugin = $this;
 
         $this->setComponents([
-            'emails' => EmailsService::class
+            'emails' => EmailsService::class,
+            'emailSources' => EmailSourceService::class,
+            'emailShots' => EmailShotsService::class
         ]);
 
         $this->registerProjectConfig();
@@ -62,6 +69,11 @@ class Emails extends Plugin
         $this->registerEmailEvents();
         $this->registerTwigVariables();
         $this->registerPermissions();
+        $this->registerEmailSources();
+
+        if (Craft::$app->request->getIsConsoleRequest()) {
+            $this->controllerNamespace = 'Ryssbowh\\CraftEmails\\console';
+        }
 
         if (Craft::$app->request->getIsCpRequest()) {
             $this->registerCpRoutes();
@@ -83,12 +95,43 @@ class Emails extends Plugin
      */
     public function getCpNavItem ()
     {
-        if (\Craft::$app->getUser()->checkPermission('accessPlugin-emails')) {
+        if (\Craft::$app->user->checkPermission('accessPlugin-emails')) {
             $item = parent::getCpNavItem();
-            $item['label'] = \Craft::t('emails', 'Emails');
+            $item['label'] = $this->settings->menuItemName ?: \Craft::t('emails', 'Emails');
+            if (\Craft::$app->user->checkPermission('sendEmails')) {
+                $item['subnav'] = [
+                    'emails' => [
+                        'url' => 'emails/list',
+                        'label' => \Craft::t('themes', 'Emails'),
+                    ],
+                    'shots' => [
+                        'url' => 'emails/shots',
+                        'label' => \Craft::t('themes', 'Email shots'),
+                    ]
+                ];
+            }
             return $item;
         }
         return null;
+    }
+
+    /**
+     * Register default email sources
+     */
+    protected function registerEmailSources()
+    {
+        Event::on(
+            EmailSourceService::class,
+            EmailSourceService::EVENT_REGISTER,
+            function (RegisterEmailSourcesEvent $e) {
+                $e->add(new AllUsersEmailSource);
+                foreach (\Craft::$app->userGroups->getAllGroups() as $group) {
+                    $e->add(new UserGroupEmailSource([
+                        'group' => $group
+                    ]));
+                }
+            }
+        );
     }
 
     /**
@@ -167,6 +210,9 @@ class Emails extends Plugin
                     ],
                     'deleteEmailLogs' => [
                         'label' => \Craft::t('emails', 'Delete emails logs')
+                    ],
+                    'manageEmailShots' => [
+                        'label' => \Craft::t('emails', 'Manage and send email shots')
                     ]
                 ];
             }
@@ -206,15 +252,18 @@ class Emails extends Plugin
         Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
             $event->rules = array_merge($event->rules, [
                 'emails' => 'emails/cp-emails',
+                'emails/list' => 'emails/cp-emails',
+                'emails/shots' => 'emails/cp-shots',
+                'emails/shots/add' => 'emails/cp-shots/add-shot',
+                'emails/shots/edit/<id:\d>' => 'emails/cp-shots/edit-shot',
+                'emails/shots/logs/<id:\d>' => 'emails/cp-shots/logs',
+                'emails/quick-shot' => 'emails/cp-shots/quick-shot',
                 'emails/edit/<id:\d+>' => 'emails/cp-emails/edit-content',
-                'emails/save-content' => 'emails/cp-emails/save-content',
-                'emails/logs/<emailId:\d+>' => 'emails/cp-emails/logs',
-                'emails/logs/<emailId:\d+>/delete' => 'emails/cp-emails/delete-logs',
+                'emails/logs/<emailId:\d+>' => 'emails/cp-emails/logs'
             ]);
             if (\Craft::$app->config->getGeneral()->allowAdminChanges) {
                 $event->rules = array_merge($event->rules, [
                     'emails/add' => 'emails/cp-emails/add',
-                    'emails/delete/<id:\d+>' => 'emails/cp-emails/delete',
                     'emails/config/<id:\d+>' => 'emails/cp-emails/edit-config',
                 ]);
             }

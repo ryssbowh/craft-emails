@@ -13,6 +13,16 @@ class Settings extends Model
     public $configDriven = ['heading', 'from', 'fromName', 'replyTo', 'cc', 'bcc'];
 
     /**
+     * @var string
+     */
+    public $menuItemName;
+
+    /**
+     * @var boolean
+     */
+    public $removeShotDuplicates = true;
+
+    /**
      * Get all parameters that can be considered config
      * 
      * @return array
@@ -41,7 +51,6 @@ class Settings extends Model
     {
         $options = ['' => \Craft::t('redactor', 'Default')];
         $path = \Craft::$app->getPath()->getConfigPath() . DIRECTORY_SEPARATOR . 'redactor';
-
         if (is_dir($path)) {
             $files = FileHelper::findFiles($path, [
                 'only' => ['*.json'],
@@ -55,9 +64,7 @@ class Settings extends Model
                 }
             }
         }
-        
         ksort($options);
-
         return $options;
     }
 }

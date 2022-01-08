@@ -1,0 +1,96 @@
+{% js %}
+    $('.js-delete-all').click(function(e){
+        e.preventDefault();
+        var id = $(this).data('id');
+        if (confirm('{{ 'Are you sure you want to delete all logs?'|t('emails') }}')) {
+            $.ajax({
+                url: Craft.getActionUrl('{{ deleteAction }}'),
+                data: {id: id},
+                dataType: 'json'
+            }).fail(function (data) {
+                handleError(data);
+            }).done(function (data){
+                location.reload();
+            });
+        }
+    });
+    $('.js-delete-selection').click(function(e){
+        e.preventDefault();
+        var id = $(this).data('id');
+        if (confirm('{{ 'Are you sure you want to delete these logs?'|t('emails') }}')) {
+            $.ajax({
+                url: Craft.getActionUrl('{{ deleteAction }}'),
+                data: {
+                    id: id,
+                    ids: selection
+                },
+                dataType: 'json'
+            }).fail(function (data) {
+                handleError(data);
+            }).done(function (data){
+                location.reload();
+            });
+        }
+    });
+    var selection = [];
+    function toggleDeleteButton()
+    {
+        if (!selection.length) {
+            $('.js-delete-selection').hide();
+        } else {
+            $('.js-delete-selection').show();
+        }
+    }
+    function select(id) {
+        if (!selection.includes(id)) {
+            selection.push(id);
+        }
+        toggleDeleteButton();
+    }
+    function unselect(id) {
+        selection = selection.filter(function(value){
+            return value != id;
+        });
+        toggleDeleteButton();
+        if (!selection.length) {
+            $('.js-select-all').prop('checked', false);
+        }
+    }
+    $('.js-select-all').click(function(){
+        var checked = $(this).is(':checked');
+        $.each($('.js-select'), function (i, item) {
+            $(item).prop('checked', checked);
+            if (checked) {
+                select($(item).data('id'));
+            } else {
+                unselect($(item).data('id'));
+            }
+        });
+    });
+    $('.js-select').click(function () {
+        if ($(this).is(':checked')) {
+            select($(this).data('id'));
+        } else {
+            unselect($(this).data('id'));
+        }
+    });
+{% endjs %}
+
+{% css %}
+    #toolbar {
+        justify-content: end;
+    }
+    .pagination {
+        justify-content: center;
+    }
+    .pagination .page-link.active {
+        box-shadow: inset 0 0 0 1px #0b69a3;
+    }
+    input.checkbox + label::before {
+        top: 3px;
+    }
+    input.checkbox {
+        z-index: 2;
+        cursor: pointer;
+    }
+{% endcss %}

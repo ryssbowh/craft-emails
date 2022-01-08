@@ -1,0 +1,48 @@
+{% extends "_layouts/cp" %}
+
+{% set selectedTab = 'edit' %}
+
+{% if shot.id %}
+    {% set tabs = {
+        'edit': {
+            selected: selectedTab == 'edit',
+            url: url("emails/shots/edit/" ~ shot.id),
+            label: "Edit"|t('emails')
+        }
+    } %}
+    {% if currentUser.can('deleteEmailLogs') %}
+        {% set tabs = tabs|merge({
+            'logs': {
+               selected: selectedTab == 'logs',
+                url: url("emails/shots/logs/" ~ shot.id),
+                label: "Logs"|t('emails')
+            }
+        }) %}
+    {% endif %}
+{% endif %}
+
+{% set fullPageForm = true %}
+{% set title = shot.id ? 'Edit email shot'|t('emails') : 'New email shot'|t('emails') %}
+{% set selectedSubnavItem = 'shots' %}
+
+{% block submitButton %}
+{% endblock %}
+
+{% block toolbar %}
+    <a href="{{ url('emails/shots') }}" class="btn">{{ 'Back'|t('emails') }}</a>
+    <button type="submit" class="btn submit">{{ 'Save'|t('emails') }}</button>
+{% endblock %}
+
+{% block content %}
+    {{ actionInput('emails/cp-shots/save-shot') }}
+    {% if shot.id %}
+        {{ hiddenInput('id', shot.id) }}
+    {% endif %}
+    {% include "emails/_includes/shot_form" %}
+{% endblock %}
+
+{% css %}
+    #toolbar {
+        justify-content: end;
+    }
+{% endcss %}

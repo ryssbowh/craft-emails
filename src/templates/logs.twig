@@ -2,12 +2,16 @@
 
 {% set selectedTab = 'logs' %}
 {% set title = 'Logs for {email}'|t('emails', {'email': email.heading}) %}
+{% set order = craft.app.request.getQueryParam("order", 'dateCreated') %}
+{% set orderSide = craft.app.request.getQueryParam("orderSide", 'desc') %}
+{% set page = craft.app.request.getQueryParam("page", 1) %}
 {% set baseUrl = url('emails/logs/' ~ email.id) %}
 
 {% block toolbar %}
     <a href="{{ url('emails') }}" class="btn back">Back</a>
     {% if currentUser.can('deleteEmailLogs') %}
-        <a href="{{ url('emails/logs/' ~ email.id ~ '/delete') }}" class="btn submit delete-logs">Delete logs</a>
+        <a href="#" data-id="{{ email.id }}" class="btn submit js-delete-all">Delete all</a>
+        <a href="#" data-id="{{ email.id }}" class="btn submit js-delete-selection" style="display:none">Delete selection</a>
     {% endif %}
 {% endblock %}
 
@@ -17,17 +21,37 @@
             <table class="vuetable data fullwidth">
                 <thead>
                     <tr>
-                        <th>Subject</th>
-                        <th>Date</th>
-                        <th>To</th>
-                        <th>Bcc</th>
-                        <th>Cc</th>
-                        <th>Content</th>
+                        {% if currentUser.can('deleteEmailLogs') %}
+                            <th>
+                                <input type="checkbox" class="checkbox js-select-all" autocomplete="off">
+                                <label></label>
+                            </th>
+                        {% endif %}
+                        <th>{{ 'Subject'|t('emails') }}</th>
+                        <th {% if order == 'dateCreated' %}class="ordered {{ orderSide }}"{% endif %}>
+                            <a href="{{ baseUrl }}?page={{ page }}&orderSide={{ orderSide == 'asc' ? 'desc' : 'asc' }}&order=dateCreated">
+                                {{ 'Date'|t('emails') }}
+                            </a>
+                        </th>
+                        <th {% if order == 'to' %}class="ordered {{ orderSide }}"{% endif %}>
+                            <a href="{{ baseUrl }}?page={{ page }}&orderSide={{ orderSide == 'asc' ? 'desc' : 'asc' }}&order=to">
+                                {{ 'To'|t('emails') }}
+                            </a>
+                        </th>
+                        <th>{{ 'Bcc'|t('emails') }}</th>
+                        <th>{{ 'Cc'|t('emails') }}</th>
+                        <th>{{ 'Content'|t('emails') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for index, log in logs %}
                         <tr>
+                            {% if currentUser.can('deleteEmailLogs') %}
+                                <td>
+                                    <input type="checkbox" class="checkbox js-select" data-id="{{ log.id }}"  autocomplete="off">
+                                    <label></label>
+                                </td>
+                            {% endif %}
                             <td>{{ log.subject }}</td>
                             <td>{{ log.dateCreated|date('d/m/Y H:i:s') }}</td>
                             <td>{{ log.email }}</td>
@@ -55,28 +79,9 @@
             {% endif %}
         </div>
     {% else %}
-        <p>No logs found</p>
+        <p>{{ 'No logs found'|t('emails') }}</p>
     {% endif %}
+    {% include "emails/_includes/js-errors" %}
+    {% include "emails/_includes/js-logs" with {deleteAction: 'emails/cp-emails/delete-logs'} %}
 {% endblock %}
-
-{% js %}
-    $('.btn.delete-logs').click(function(e){
-        if (!confirm('{{ 'Are you sure you want to delete all logs?'|t('emails') }}')) {
-            e.preventDefault();
-        }
-    });
-{% endjs %}
-
-
-{% css %}
-    #toolbar {
-        justify-content: end;
-    }
-    .pagination {
-        justify-content: center;
-    }
-    .pagination .page-link.active {
-        box-shadow: inset 0 0 0 1px #0b69a3;
-    }
-{% endcss %}
 

@@ -1,0 +1,148 @@
+{% extends "_layouts/cp" %}
+{% import "_includes/forms" as forms %}
+
+{% set title = 'Email shots'|t('emails') %}
+{% set selectedSubnavItem = 'shots' %}
+
+{% block toolbar %}
+    <a href="{{ url('emails/quick-shot') }}" class="btn submit">{{ 'Quick shot'|t('emails') }}</a>
+    <a href="{{ url('emails/shots/add') }}" class="btn submit">{{ 'New shot'|t('emails') }}</a>
+{% endblock %}
+
+{% block content %}
+    {% if shots %}
+        <div class="tableview" id="shots-table-view">
+            <table class="vuetable data fullwidth">
+                <thead>
+                    <tr>
+                        <th>{{ 'Name'|t('emails') }}</th>
+                        <th>{{ 'Handle'|t('emails') }}</th>
+                        <th>{{ 'Email'|t('emails') }}</th>
+                        <th>
+                            {{ 'Total emails'|t('emails') }}
+                        </th>
+                        <th>{{ 'Logs'|t('emails') }}</th>
+                        <th>{{ 'Sent'|t('emails') }}</th>
+                        <th>{{ 'Actions'|t('emails') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shot in shots %}
+                        <tr>
+                            <td>
+                                <a href="{{ url('emails/shots/edit/' ~ shot.id) }}">
+                                    {{ shot.name }}
+                                </a>
+                            </td>
+                            <td>{{ shot.handle }}</td>
+                            <td>
+                                {% if not shot.emailObject %}
+                                    <span class="error">{{ 'No email set'|t('emails') }}</span>
+                                {% else %}
+                                    {% if currentUser.can('modifyEmailContent') %}
+                                        <a target="_blank" href="{{ shot.emailObject.cpEditUrl }}">{{ shot.emailObject.heading }}</a>
+                                    {% else %}
+                                        {{ shot.emailObject.heading }}
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ shot.emailCount }}
+                            </td>
+                            <td>
+                                {{ shot.saveLogs ? 'Yes'|t('emails') : 'No'|t('emails') }}
+                            </td>
+                            <td>
+                                {{ shot.sent }}
+                            </td>
+                            <td>
+                                <div class="actions-wrapper flex flex-nowrap">
+                                    <div class="icon delete js-delete" data-id="{{ shot.id }}" title="{{ 'Delete'|t('emails') }}"></div>
+                                    {% if currentUser.can('seeEmailLogs') %}
+                                        <a href="{{ url('emails/shots/logs/' ~ shot.id ) }}" title="View logs" class="icon logs"></a>
+                                    {% endif %}
+                                    {% if shot.emailObject %}
+                                        <button class="btn js-send" data-id="{{ shot.id }}">{{ 'Send now'|t('emails') }}<div class="spinner"></div></button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>{{ 'No email shots found'|t('emails') }}</p>
+    {% endif %}
+    {% include "emails/_includes/js-errors" %}
+{% endblock %}
+
+{% css %}
+    #toolbar {
+        justify-content: end;
+    }
+    .js-send {
+        margin-left: 20px;
+        height: 25px;
+        padding:  7px;
+    }
+    .actions-wrapper {
+        align-items: center;
+    }
+    .js-send .spinner {
+        display: none;
+    }
+    .icon.logs:before {
+        content: 'circlerarr';
+        color: rgba(123, 135, 147, 0.5);
+    }
+{% endcss %}
+
+{% js %}
+    $('.js-delete').click(function (e) {
+        e.preventDefault();
+        let id = $(this).data('id');
+        let button = $(this);
+        if (confirm('{{ "Are you sure you want to delete this email shot ?"|t("emails") }}')) {
+            $.ajax({
+                url: Craft.getActionUrl('emails/cp-shots/delete'),
+                data: {id: id},
+                dataType: 'json'
+            }).fail(function (data) {
+                handleError(data);
+            }).done(function (data){
+                if (data.message) {
+                    Craft.cp.displayNotice(data.message);
+                }
+                button.parent().parent().parent().remove();
+                if ($('#shots-table-view tbody tr').length == 0) {
+                    $('#shots-table-view').remove();
+                    $('#content').append('<p>{{ "No email shots found"|t("emails") }}</p>');
+                }
+            });
+        }
+    });
+    $('.js-send').click(function (e) {
+        e.preventDefault();
+        let id = $(this).data('id');
+        let button = $(this);
+        if (confirm('{{ "Are you sure you want to send this email shot now?"|t("emails") }}')) {
+            $(this).find('.spinner').show();
+            $(this).attr('disabled', true);
+            $.ajax({
+                url: Craft.getActionUrl('emails/cp-shots/send'),
+                data: {id: id},
+                dataType: 'json'
+            }).fail(function (data) {
+                handleError(data);
+            }).done(function (data){
+                if (data.message) {
+                    Craft.cp.displayNotice(data.message);
+                }
+            }).always(function() {
+                button.find('.spinner').hide();
+                button.attr('disabled', false);
+            });
+        }
+    });
+{% endjs %}

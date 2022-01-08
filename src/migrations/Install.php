@@ -50,8 +50,36 @@ class Install extends Migration
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
+
+        $this->createTable('{{%emails_shots}}', [
+            'id' => $this->primaryKey(),
+            'handle' => $this->string(255),
+            'name' => $this->string(255),
+            'email_id' => $this->integer(11),
+            'users' => $this->longText(),
+            'emails' => $this->longText(),
+            'sources' => $this->longText(),
+            'useQueue' => $this->boolean(),
+            'sent' => $this->integer(11)->defaultValue(0),
+            'saveLogs' => $this->boolean(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
+
+        $this->createTable('{{%emails_shots_logs}}', [
+            'id' => $this->primaryKey(),
+            'shot_id' => $this->integer(11)->null(),
+            'email' => $this->string(255),
+            'message' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
         
         $this->addForeignKey('emails_logs_email_id_fk', '{{%emails_logs}}', ['email_id'], '{{%emails}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey('emails_shots_email_id_fk', '{{%emails_shots}}', ['email_id'], '{{%emails}}', ['id'], 'SET NULL', null);
+        $this->addForeignKey('emails_shots_logs_shot_id_fk', '{{%emails_shots_logs}}', ['shot_id'], '{{%emails_shots}}', ['id'], 'SET NULL', null);
     }
 
     /**
@@ -59,7 +87,9 @@ class Install extends Migration
      */
     public function safeDown()
     {
+        $this->dropTableIfExists('{{%emails_shots_logs}}');
         $this->dropTableIfExists('{{%emails_logs}}');
+        $this->dropTableIfExists('{{%emails_shots}}');
         $this->dropTableIfExists('{{%emails}}');
     }
 }

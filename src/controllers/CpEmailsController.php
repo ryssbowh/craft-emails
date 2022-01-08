@@ -4,6 +4,7 @@ namespace Ryssbowh\CraftEmails\controllers;
 
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\Models\Email;
+use Ryssbowh\CraftEmails\Models\EmailShot;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
@@ -63,10 +64,25 @@ class CpEmailsController extends Controller
     {
         $this->requirePermission('addDeleteEmailTemplates');
         $email = Emails::$plugin->emails->getById($id);
-        Emails::$plugin->emails->delete($email);
-        return $this->asJson([
-            'message' => \Craft::t('emails', 'Email deleted'),
-        ]);
+        if (Emails::$plugin->emails->delete($email)) {
+            $message = \Craft::t('emails', 'Email has been deleted.');
+            if ($this->request->isAjax) {
+                return $this->asJson([
+                    'message' => $message
+                ]);
+            }
+            \Craft::$app->session->setNotice($message);
+            return $this->redirect(UrlHelper::cpUrl('emails/list'));
+        }
+        $message = \Craft::t('emails', 'Error while deleting email.');
+        if ($this->request->isAjax) {
+            $this->response->setStatusCode(400);
+            return $this->asJson([
+                'message' => $message
+            ]);
+        }
+        \Craft::$app->session->setNotice($message);
+        return $this->redirect(UrlHelper::cpUrl('emails/list'));
     }
 
     public function actionSaveConfig()
@@ -82,6 +98,9 @@ class CpEmailsController extends Controller
         
         if (Emails::$plugin->emails->save($email)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Email saved.'));
+            if ($new) {
+                return $this->redirect(UrlHelper::cpUrl('emails/edit/' . $email->id));    
+            }
             return $this->redirect(UrlHelper::cpUrl('emails'));
         }
         $template = $new ? 'emails/add' : 'emails/edit-config';
@@ -108,20 +127,24 @@ class CpEmailsController extends Controller
         return $this->redirect(UrlHelper::cpUrl('emails'));
     }
 
-    public function actionDeleteLogs(int $emailId)
+    public function actionDeleteLogs()
     {
         $this->requirePermission('deleteEmailLogs');
-        $email = Emails::$plugin->emails->getById($emailId);
-        Emails::$plugin->emails->deleteLogs($email);
-        \Craft::$app->session->setNotice(\Craft::t('emails', 'All logs deleted'));
-        return $this->redirect(UrlHelper::cpUrl('emails/logs/' . $email->id));
+        $id = $this->request->getRequiredParam('id');
+        $email = Emails::$plugin->emails->getById($id);
+        $ids = $this->request->getParam('ids');
+        Emails::$plugin->emails->deleteLogs($email, $ids);
+        \Craft::$app->session->setNotice(\Craft::t('emails', 'Logs have been deleted.'));
+        return true;
     }
 
     public function actionLogs(int $emailId)
     {
         $this->requirePermission('seeEmailLogs');
         $email = Emails::$plugin->emails->getById($emailId);
-        list($models, $pages) = Emails::$plugin->emails->getLogs($email);
+        $orderSide = $this->request->getParam('orderSide', 'desc');
+        $order = $this->request->getParam('order', 'dateCreated');
+        list($models, $pages) = Emails::$plugin->emails->getLogs($email, $order, $orderSide);
         return $this->renderTemplate('emails/logs', [
             'email' => $email,
             'logs' => $models,

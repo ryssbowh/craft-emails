@@ -1,12 +1,29 @@
 {% import "_includes/forms" as forms %}
 
 {{
+    forms.textField({
+        name: 'menuItemName',
+        value: settings.menuItemName ?? 'Emails'|t('emails'),
+        required: true,
+        errors: errors['menuItemName'] ?? [],
+        fieldClass: 'first',
+        label: 'Menu item label'
+    })
+}}
+
+{{
     forms.checkboxSelectField({
         label: 'Config driven parameters'|t('themes'),
         instructions: "These email parameters will be considered configuration (they won't be available to modify on environments when config changes are disabled)",
         options: settings.configDrivenOptions,
         values: settings.configDriven,
-        name: 'configDriven',
-        fieldClass: 'first'
+        name: 'configDriven'
+    })
+}}
+{{
+    forms.lightswitchField({
+        name: 'removeShotDuplicates',
+        on: settings.removeShotDuplicates,
+        label: 'Remove duplicated emails in email shots'|t('emails')
     })
 }}

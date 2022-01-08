@@ -1,0 +1,164 @@
+{% import "_includes/forms" as forms %}
+
+{% set selectedSubnavItem = 'shots' %}
+{% set id = 'field-users' %}
+{% set name = 'users' %}
+{% set jsSettings = {
+    id: id,
+    name: name,
+    elementType: 'craft\\elements\\User',
+    modalSettings: {
+        hideSidebar: true
+    }
+} %}
+{% set mode = mode ?? 'create' %}
+
+{% macro errorList(errors) %}
+    {% include "_includes/forms/errorList" %}
+{% endmacro %}
+
+{% if mode == 'create' %}
+    <div class="flex flex-nowrap align-base">
+        {{
+            forms.textField({
+                name: 'name',
+                label: 'Name'|t('emails'),
+                errors: errors['name'] ?? [],
+                value: shot.name,
+                fieldClass: 'half',
+                id: 'field-name'
+            })
+        }}
+        {{
+            forms.textField({
+                name: 'handle',
+                label: 'Handle'|t('emails'),
+                errors: errors['handle'] ?? [],
+                value: shot.handle,
+                fieldClass: 'half',
+                id: 'field-handle'
+            })
+        }}
+    </div>
+{% endif %}
+
+{{
+    forms.selectField({
+        name: 'email_id',
+        options: allEmails,
+        value: shot.email_id,
+        label: 'Email'|t('emails'),
+        fieldClass: mode == 'create' ? '' : 'first',
+        errors: errors['email_id'] ?? []
+    })
+}}
+<div class="flex flex-nowrap align-base">
+    {{
+        forms.checkboxSelectField({
+            options: allSources,
+            values: shot.sources,
+            label: 'Sources'|t('emails'),
+            fieldClass: 'third',
+            name: 'sources',
+            errors: errors['sources'] ?? []
+        })
+    }}
+    <div class="field third">
+        {{ hiddenInput(name, '') }}
+        <div class="heading">
+            <label>{{ 'Users'|t('emails') }}</label>
+        </div>
+        <div id="{{ id }}" class="elementselect">
+            <div class="elements">
+                {% for element in shot.userElements %}
+                    {% include "_elements/element" with {
+                        context: 'field',
+                        size: 'small'
+                    } %}
+                {% endfor %}
+            </div>
+            {{ _self.errorList(errors['users'] ?? []) }}
+            <div class="flex">
+                {{ tag('button', {
+                    type: 'button',
+                    text: 'Add an User'|t('app'),
+                    class: ['btn', 'add', 'icon', 'dashed'],
+                    aria: {
+                        label: 'Add an User'|t('app')
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+    <div class="field third">
+        <div class="heading">
+            <label>{{ 'Emails'|t('emails') }}</label>
+        </div>
+        <div class="elementselect" id="field-emails">
+            <div class="elements">
+                {% for email in shot.emails %}
+                    <div class="email-element flex flex-nowrap">
+                        <input name="emails[]" type="email" class="text" value="{{ email }}">
+                        <button type="button" class="delete icon" title="Remove" aria-label="Remove"></button>
+                    </div>
+                {% endfor %}
+            </div>
+            {{ _self.errorList(errors['emails'] ?? []) }}
+            {{ tag('button', {
+                type: 'button',
+                text: 'Add an Email'|t('emails'),
+                class: ['btn', 'add', 'icon', 'dashed', 'js-add-email'],
+                aria: {
+                    label: 'Add an Email'|t('emails')
+                },
+            }) }}
+        </div>
+    </div>
+</div>
+{{ forms.lightswitchField({
+    label: 'Use queue'|t('emails'),
+    name: 'useQueue',
+    on: shot.useQueue,
+    instructions: "Send emails through the queue. the emails will be send in the background so you can do other things in the meantime."|t('emails')
+}) }}
+{{ forms.lightswitchField({
+    label: 'Save logs'|t('emails'),
+    name: 'saveLogs',
+    on: shot.saveLogs
+}) }}
+
+{% css %}
+    .field.third {
+        width: 33.3%;
+    }
+    .field.half {
+        width: 50%;
+    }
+    .align-base {
+        align-items: baseline;
+    }
+    .email-element {
+        margin-top: 7px;
+    }
+{% endcss %}
+
+{% js %}
+    new Craft.BaseElementSelectInput({{ jsSettings|json_encode|raw }});
+    $(document).on('click', '.email-element .delete', function(e){
+        $(this).parent().slideUp('fast', function () {
+            $(this).remove();
+        });
+    });
+    $('.js-add-email').click(function () {
+        var elem = $('<div class="email-element flex flex-nowrap"><input name="emails[]" type="email" class="text"><button type="button" class="delete icon" title="Remove" aria-label="Remove"></button></div>');
+        elem.hide();
+        $('#field-emails .elements').append(elem);
+        elem.slideDown('fast');
+    });
+{% endjs %}
+
+{% if mode == 'create' and not shot.handle %}
+    {% js %}
+        new Craft.HandleGenerator('#field-name', '#field-handle')
+    {% endjs %}
+{% endif %}

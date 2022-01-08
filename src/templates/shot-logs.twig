@@ -1,0 +1,89 @@
+{% extends "_layouts/cp" %}
+
+{% set selectedTab = 'logs' %}
+{% set selectedSubnavItem = 'shots' %}
+
+{% set tabs = {
+    'edit': {
+        selected: selectedTab == 'edit',
+        url: url("emails/shots/edit/" ~ shot.id),
+        label: "Edit"|t('emails')
+    }
+} %}
+
+{% if currentUser.can('deleteEmailLogs') %}
+    {% set tabs = tabs|merge({
+        'logs': {
+           selected: selectedTab == 'logs',
+            url: url("emails/shots/logs/" ~ shot.id),
+            label: "Logs"|t('emails')
+        }
+    }) %}
+{% endif %}
+
+{% set title = 'Logs for {shot}'|t('emails', {'shot': shot.name}) %}
+{% set order = craft.app.request.getQueryParam("order", 'dateCreated') %}
+{% set orderSide = craft.app.request.getQueryParam("orderSide", 'desc') %}
+{% set page = craft.app.request.getQueryParam("page", 1) %}
+{% set baseUrl = url('emails/shots/logs/' ~ shot.id) %}
+
+{% block toolbar %}
+    <a href="{{ url('emails/shots') }}" class="btn back">Back</a>
+    {% if currentUser.can('deleteEmailLogs') %}
+        <a href="#" data-id="{{ shot.id }}" class="btn submit js-delete-all">Delete all</a>
+        <a href="#" data-id="{{ shot.id }}" class="btn submit js-delete-selection" style="display:none">Delete selection</a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if logs %}
+        <div class="tableview">
+            <table class="vuetable data fullwidth">
+                <thead>
+                    <tr>
+                        {% if currentUser.can('deleteEmailLogs') %}
+                            <th>
+                                <input type="checkbox" class="checkbox js-select-all" autocomplete="off">
+                                <label></label>
+                            </th>
+                        {% endif %}
+                        <th {% if order == 'email' %}class="ordered {{ orderSide }}"{% endif %}>
+                            <a href="{{ baseUrl }}?page={{ page }}&orderSide={{ orderSide == 'asc' ? 'desc' : 'asc' }}&order=email">{{ 'Email'|t('emails') }}</a>
+                        </th>
+                        <th>Message</th>
+                        <th {% if order == 'dateCreated' %}class="ordered {{ orderSide }}"{% endif %}>
+                            <a href="{{ baseUrl }}?page={{ page }}&orderSide={{ orderSide == 'asc' ? 'desc' : 'asc' }}&order=dateCreated">{{ 'Date'|t('emails') }}</a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for index, log in logs %}
+                        <tr>
+                            {% if currentUser.can('deleteEmailLogs') %}
+                                <td>
+                                    <input type="checkbox" class="checkbox js-select" data-id="{{ log.id }}"  autocomplete="off">
+                                    <label></label>
+                                </td>
+                            {% endif %}
+                            <td>{{ log.email }}</td>
+                            <td>{{ log.message }}</td>
+                            <td>{{ log.dateCreated|date('d/m/Y H:i:s') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if pages.pageCount > 1 %}
+                <div class="flex pagination">
+                    {% for page in range(1, pages.pageCount) %}
+                        <a class="page-link page-number{% if page == pages.page + 1 %} active{% endif %}" href="{{ baseUrl }}?page={{ page }}&order={{ order }}&orderSide={{ orderSide }}">{{ page }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>{{ 'No logs found'|t('emails') }}</p>
+    {% endif %}
+    {% include "emails/_includes/js-errors" %}
+    {% include "emails/_includes/js-logs" with {deleteAction: 'emails/cp-shots/delete-logs'} %}
+{% endblock %}
+

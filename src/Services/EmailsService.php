@@ -104,7 +104,9 @@ class EmailsService extends Component
             ]);
             $this->save($email);
         }
-        \Craft::$app->projectConfig->set('plugins.emails.dataInstalled', true);
+        if (!\Craft::$app->projectConfig->readOnly) {
+            \Craft::$app->projectConfig->set('plugins.emails.dataInstalled', true, null, false);
+        }
         return true;
     }
 
@@ -112,11 +114,13 @@ class EmailsService extends Component
      * Get logs for an email
      * 
      * @param  Email  $email
+     * @param  string $order
+     * @param  string $orderSide
      * @return array
      */
-    public function getLogs(Email $email): array
+    public function getLogs(Email $email, string $order = 'dateCreated', string $orderSide = 'desc'): array
     {
-        $query = EmailLog::find()->where(['email_id' => $email->id])->orderBy(['dateCreated' => SORT_DESC]);
+        $query = EmailLog::find()->where(['email_id' => $email->id])->orderBy([$order => $orderSide == 'asc' ? SORT_ASC : SORT_DESC]);
         $countQuery = clone $query;
         $pages = new Pagination([
             'defaultPageSize' => 10,
@@ -132,14 +136,22 @@ class EmailsService extends Component
     }
 
     /**
-     * Delete all logs for an email
+     * Delete logs for an email
      * 
-     * @param  Email $email
+     * @param  Email  $email
+     * @param  array|null $ids
      */
-    public function deleteLogs(Email $email)
+    public function deleteLogs(Email $email, ?array $ids = null)
     {
-        foreach (EmailLog::find()->where(['email_id' => $email->id])->all() as $log) {
-            $log->delete();
+        if (is_array($ids)) {
+            $logs = EmailLog::find()->where(['in', 'id', $ids])->andWhere(['email_id' => $email->id])->all();
+            foreach ($logs as $log) {
+                $log->delete();
+            }
+        } else {
+            \Craft::$app->getDb()->createCommand()
+                ->delete(EmailLog::tableName(), ['email_id' => $email->id])
+                ->execute();
         }
     }
 
@@ -231,7 +243,8 @@ class EmailsService extends Component
         $uid = $isNew ? StringHelper::UUID() : $email->uid;
 
         $this->triggerEvent(self::EVENT_BEFORE_SAVE, new EmailEvent([
-            'email' => $email
+            'email' => $email,
+            'isNew' => $isNew
         ]));
 
         $projectConfig = \Craft::$app->getProjectConfig();
@@ -344,12 +357,13 @@ class EmailsService extends Component
     /**
      * Respond to rebuild config event
      * 
-     * @param  RebuildConfigEvent $e
+     * @param RebuildConfigEvent $e
      */
     public function rebuildConfig(RebuildConfigEvent $e)
     {
+        $parts = explode('.', self::CONFIG_KEY);
         foreach ($this->all() as $email) {
-            $e->config[self::CONFIG_KEY][$email->uid] = $email->getConfig();
+            $e->config[$parts[0]][$parts[1]][$email->uid] = $email->getConfig();
         }
     }
 
