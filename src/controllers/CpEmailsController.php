@@ -135,7 +135,7 @@ class CpEmailsController extends Controller
         $key = $this->request->getRequiredParam('key');
         $langId = $this->request->getRequiredParam('localeId');
         $locale = \Craft::$app->i18n->getLocaleById($langId);
-        if (Emails::$plugin->emails->addTranslation($key, $langId)) {
+        if (Emails::$plugin->messages->addTranslation($key, $langId)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Translation for {lang} added.', ['lang' => $locale->displayName]));
             return true;    
         }
@@ -156,7 +156,7 @@ class CpEmailsController extends Controller
         $key = $this->request->getRequiredParam('key');
         $langId = $this->request->getRequiredParam('localeId');
         $locale = \Craft::$app->i18n->getLocaleById($langId);
-        if (Emails::$plugin->emails->deleteTranslation($key, $langId)) {
+        if (Emails::$plugin->messages->deleteTranslation($key, $langId)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Translation for {lang} deleted.', ['lang' => $locale->displayName]));
             return true;    
         }
@@ -201,7 +201,7 @@ class CpEmailsController extends Controller
             'subject' => $this->request->getRequiredParam('subject'),
             'body' => $this->request->getRequiredParam('body')
         ]);
-        if (Emails::$plugin->emails->saveMessage($message, $langId, $attachements)) {
+        if (Emails::$plugin->messages->saveMessage($message, $langId, $attachements)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Content saved.'));
             return $this->redirect(UrlHelper::cpUrl('emails'));
         }

@@ -153,7 +153,7 @@ class Email extends Model
      */
     public function getMessage(?string $language = null): ?SystemMessage
     {
-        return Emails::$plugin->emails->getMessage($this->key, $language);
+        return Emails::$plugin->messages->getMessage($this->key, $language);
     }
 
     /**

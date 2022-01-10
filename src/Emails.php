@@ -12,6 +12,7 @@ use Ryssbowh\CraftEmails\Services\EmailerService;
 use Ryssbowh\CraftEmails\Services\EmailsService;
 use Ryssbowh\CraftEmails\Services\EmailsVariable;
 use Ryssbowh\CraftEmails\Services\MailchimpService;
+use Ryssbowh\CraftEmails\Services\MessagesService;
 use Ryssbowh\CraftEmails\emailSources\AllUsersEmailSource;
 use Ryssbowh\CraftEmails\emailSources\MailchimpEmailSource;
 use Ryssbowh\CraftEmails\emailSources\UserGroupEmailSource;
@@ -77,6 +78,7 @@ class Emails extends Plugin
             'emailShots' => EmailShotsService::class,
             'mailchimp' => MailchimpService::class,
             'attachements' => AttachementsService::class,
+            'messages' => MessagesService::class,
         ]);
 
         $this->registerMailer();
@@ -149,7 +151,7 @@ class Emails extends Plugin
                 $oldLanguage = $e->sender->getOldAttribute('language');
                 $newLanguage = $e->sender->language;
                 if ($oldLanguage !== $newLanguage) {
-                    Emails::$plugin->emails->updatePrimaryMessageLanguage($oldLanguage, $newLanguage);
+                    Emails::$plugin->messages->updatePrimaryMessageLanguage($oldLanguage, $newLanguage);
                 }
             }
         );
@@ -302,7 +304,7 @@ class Emails extends Plugin
     protected function registerSystemMessages()
     {
         Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function(RegisterEmailMessagesEvent $event) {
-            $event->messages = Emails::$plugin->emails->getAllSystemMessages($event->messages);
+            $event->messages = Emails::$plugin->messages->getAllSystemMessages($event->messages);
         });
     }
 

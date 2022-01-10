@@ -30,4 +30,9 @@ class EmailsVariable
     {
         return Emails::$plugin->attachements;
     }
+
+    public function messages()
+    {
+        return Emails::$plugin->messages;
+    }
 }
