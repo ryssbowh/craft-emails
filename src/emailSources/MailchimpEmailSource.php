@@ -3,7 +3,7 @@
 namespace Ryssbowh\CraftEmails\emailSources;
 
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\Models\MailchimpList;
+use Ryssbowh\CraftEmails\models\MailchimpList;
 use Ryssbowh\CraftEmails\interfaces\EmailSourceInterface;
 use craft\base\Component;
 use craft\elements\User;

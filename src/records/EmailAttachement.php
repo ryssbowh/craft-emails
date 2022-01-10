@@ -1,6 +1,6 @@
 <?php 
 
-namespace Ryssbowh\CraftEmails\Records;
+namespace Ryssbowh\CraftEmails\records;
 
 use craft\db\ActiveRecord;
 use craft\records\SystemMessage;

@@ -1,8 +1,8 @@
 <?php 
 
-namespace Ryssbowh\CraftEmails\Records;
+namespace Ryssbowh\CraftEmails\records;
 
-use Ryssbowh\CraftEmails\Models\EmailLog as LogModel;
+use Ryssbowh\CraftEmails\models\EmailLog as LogModel;
 use craft\db\ActiveRecord;
 use craft\helpers\FileHelper;
 

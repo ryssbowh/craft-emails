@@ -23,7 +23,6 @@ class Install extends Migration
             'redactorConfig' => $this->string(255),
             'heading' => $this->string(255)->notNull(),
             'instructions' => $this->text()->defaultValue(''),
-            'attachements' => $this->text()->defaultValue(''),
             'from' => $this->string(255),
             'fromName' => $this->string(255),
             'replyTo' => $this->string(255),

@@ -1,6 +1,6 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\Models;
+namespace Ryssbowh\CraftEmails\models;
 
 use yii\base\DynamicModel;
 

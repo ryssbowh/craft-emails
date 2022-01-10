@@ -1,8 +1,8 @@
 <?php 
 
-namespace Ryssbowh\CraftEmails\Records;
+namespace Ryssbowh\CraftEmails\records;
 
-use Ryssbowh\CraftEmails\Models\Email as EmailModel;
+use Ryssbowh\CraftEmails\models\Email as EmailModel;
 use craft\db\ActiveRecord;
 
 class Email extends ActiveRecord

@@ -1,10 +1,15 @@
 # ryssbowh/craft-emails Changelog
 
-## 1.1.2
+## 1.2.0 10-01-2022
+
+### Fixed
+- Plain text emails dont have html
 
 ### Changed
 - move messages into their own service
 - better quick shot error handling
+- better preview
+- better redactor integration (links to entry, category, assets), enabled elements refs
 
 ## 1.1.1 - 10/01/2022
 

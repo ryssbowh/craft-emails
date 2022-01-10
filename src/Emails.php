@@ -3,19 +3,21 @@
 namespace Ryssbowh\CraftEmails;
 
 use Craft;
-use Ryssbowh\CraftEmails\Events\RegisterEmailSourcesEvent;
-use Ryssbowh\CraftEmails\Models\Settings;
-use Ryssbowh\CraftEmails\Services\AttachementsService;
-use Ryssbowh\CraftEmails\Services\EmailShotsService;
-use Ryssbowh\CraftEmails\Services\EmailSourceService;
-use Ryssbowh\CraftEmails\Services\EmailerService;
-use Ryssbowh\CraftEmails\Services\EmailsService;
-use Ryssbowh\CraftEmails\Services\EmailsVariable;
-use Ryssbowh\CraftEmails\Services\MailchimpService;
-use Ryssbowh\CraftEmails\Services\MessagesService;
+use Ryssbowh\CraftEmails\behaviors\MessageBehavior;
 use Ryssbowh\CraftEmails\emailSources\AllUsersEmailSource;
 use Ryssbowh\CraftEmails\emailSources\MailchimpEmailSource;
 use Ryssbowh\CraftEmails\emailSources\UserGroupEmailSource;
+use Ryssbowh\CraftEmails\events\RegisterEmailSourcesEvent;
+use Ryssbowh\CraftEmails\models\Settings;
+use Ryssbowh\CraftEmails\services\AttachementsService;
+use Ryssbowh\CraftEmails\services\EmailShotsService;
+use Ryssbowh\CraftEmails\services\EmailSourceService;
+use Ryssbowh\CraftEmails\services\EmailerService;
+use Ryssbowh\CraftEmails\services\EmailsService;
+use Ryssbowh\CraftEmails\services\EmailsVariable;
+use Ryssbowh\CraftEmails\services\MailchimpService;
+use Ryssbowh\CraftEmails\services\MessagesService;
+use Ryssbowh\CraftEmails\variables\EmailsVariable;
 use craft\base\Plugin;
 use craft\db\Table;
 use craft\events\DefineBehaviorsEvent;
@@ -52,7 +54,7 @@ class Emails extends Plugin
     /**
      * @inheritdoc
      */
-    public $schemaVersion = '1.1.0';
+    public $schemaVersion = '1.2.0';
 
     /**
      * @inheritdoc
@@ -91,6 +93,7 @@ class Emails extends Plugin
         $this->registerClearCacheEvent();
         $this->registerSiteTemplates();
         $this->registerSiteChange();
+        $this->registerBehaviors();
 
         if (Craft::$app->request->getIsConsoleRequest()) {
             $this->controllerNamespace = 'Ryssbowh\\CraftEmails\\console';
@@ -134,6 +137,19 @@ class Emails extends Plugin
             return $item;
         }
         return null;
+    }
+
+    /**
+     * Register behaviors
+     */
+    protected function registerBehaviors()
+    {
+        Event::on(
+            SystemMessage::class,
+            SystemMessage::EVENT_DEFINE_BEHAVIORS,
+            function(DefineBehaviorsEvent $event) {
+                $event->behaviors['messageBehavior'] = ['class' => MessageBehavior::class];
+            });
     }
 
     /**

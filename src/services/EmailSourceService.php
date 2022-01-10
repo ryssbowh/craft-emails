@@ -1,8 +1,8 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\Services;
+namespace Ryssbowh\CraftEmails\services;
 
-use Ryssbowh\CraftEmails\Events\RegisterEmailSourcesEvent;
+use Ryssbowh\CraftEmails\events\RegisterEmailSourcesEvent;
 use Ryssbowh\CraftEmails\exceptions\EmailSourceException;
 use Ryssbowh\CraftEmails\interfaces\EmailSourceInterface;
 use craft\base\Component;

@@ -17,6 +17,7 @@
         }
     ],
     "require": {
+        "php": ">=7.4",
         "craftcms/cms": "^3.5.0",
         "craftcms/redactor": "^2.7",
         "drewm/mailchimp-api": "^2.5"

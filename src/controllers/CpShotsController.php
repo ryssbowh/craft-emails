@@ -3,8 +3,8 @@
 namespace Ryssbowh\CraftEmails\controllers;
 
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\Models\Email;
-use Ryssbowh\CraftEmails\Models\EmailShot;
+use Ryssbowh\CraftEmails\models\Email;
+use Ryssbowh\CraftEmails\models\EmailShot;
 use Ryssbowh\CraftEmails\assets\EmailsAssetBundle;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
 use craft\helpers\UrlHelper;
@@ -139,14 +139,22 @@ class CpShotsController extends Controller
         $id = $this->request->getRequiredParam('id');
         $shot = Emails::$plugin->emailShots->getById($id);
         Emails::$plugin->emailShots->send($shot);
+        $error = $message = '';
         if ($shot->useQueue) {
             $message = \Craft::t('emails', '{number} emails have been sent to the queue.', ['number' => $shot->emailCount]);
         } else {
-            $message = \Craft::t('emails', '{number} emails sent.', ['number' => $shot->emailCount]);
+            list($sent, $failed) = Emails::$plugin->emailShots->lastRunResult;
+            if (sizeof($sent)) {
+                $message = \Craft::t('emails', '{number} emails sent.', ['number' => sizeof($sent)]);
+            }
+            if (sizeof($failed)) {
+                $error = \Craft::t('emails', '{number} emails failed to send.', ['number' => sizeof($failed)]);
+            }
         }
         if ($this->request->isAjax) {
             return $this->asJson([
-                'message' => $message
+                'message' => $message,
+                'error' => $error,
             ]);
         }
         \Craft::$app->session->setNotice($message);

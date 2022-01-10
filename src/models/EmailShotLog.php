@@ -1,9 +1,9 @@
 <?php 
 
-namespace Ryssbowh\CraftEmails\Models;
+namespace Ryssbowh\CraftEmails\models;
 
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\Models\Email;
+use Ryssbowh\CraftEmails\models\Email;
 use Ryssbowh\CraftEmails\Records\Email as EmailRecord;
 use Ryssbowh\CraftEmails\Records\EmailShot as EmailShotRecord;
 use Ryssbowh\CraftEmails\exceptions\EmailSourceException;

@@ -19,6 +19,7 @@ class m220109_090357_Version11Changes extends Migration
         $this->dropColumn('{{%emails_logs}}', 'content');
         $this->dropColumn('{{%emails}}', 'subject');
         $this->dropColumn('{{%emails}}', 'body');
+        $this->dropColumn('{{%emails}}', 'attachements');
         $this->createTable('{{%emails_attachements}}', [
             'id' => $this->primaryKey(),
             'message_id' => $this->integer(11)->notNull(),

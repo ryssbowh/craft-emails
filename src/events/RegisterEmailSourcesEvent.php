@@ -1,6 +1,6 @@
 <?php 
 
-namespace Ryssbowh\CraftEmails\Events;
+namespace Ryssbowh\CraftEmails\events;
 
 use Ryssbowh\CraftEmails\exceptions\EmailSourceException;
 use Ryssbowh\CraftEmails\interfaces\EmailSourceInterface;

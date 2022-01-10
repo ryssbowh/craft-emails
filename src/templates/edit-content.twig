@@ -31,12 +31,10 @@
         }
     }) %}
 {% endfor %}
-{% set redactorSettings = '' %}
-
 
 {% block toolbar %}
     <a href="{{ url('emails') }}" class="btn back">{{ 'Back'|t('app') }}</a>
-    <a href="{{ url('emails/preview/' ~ email.id ~ '/' ~ langId) }}" target="_blank" class="btn">{{ 'Preview'|t('emails') }}</a>
+    <button type="button" class="js-preview btn">{{ 'Preview'|t('emails') }}</button>
     {% if translatableLocales|length %}
         <button class="btn menubtn" type="button">{{ 'Add translation'|t('emails') }}</button>
         <div class="menu">
@@ -62,18 +60,32 @@
         value: message.subject,
         required: true,
         instructions: 'Subject of the email, twig supported'|t('emails'),
-        errors: errors['subject'] ?? []
+        errors: errors['subject'] ?? [],
+        id: 'field-subject'
     }) }}
-    {{ forms.textareaField({
-        label: 'Body'|t('emails'),
-        name: 'body',
-        value: message.body,
-        instructions: 'Body of the email, twig supported'|t('emails'),
-        tip: email.instructions,
-        required: true,
-        inputAttributes: {id: 'field-body'},
-        errors: errors['body'] ?? []
-    }) }}
+    {% if email.plain %}
+        {{ forms.textareaField({
+            label: 'Body'|t('emails'),
+            name: 'body',
+            value: message.body,
+            instructions: 'Body of the email, twig supported'|t('emails'),
+            tip: email.instructions,
+            required: true,
+            errors: errors['body'] ?? [],
+            id: 'field-body'
+        }) }}
+    {% else %}
+        {{ forms.field({
+            label: 'Body'|t('emails'),
+            name: 'body',
+            instructions: 'Body of the email, twig supported'|t('emails'),
+            tip: email.instructions,
+            required: true,
+            errors: errors['body'] ?? [],
+            id: 'field-body'
+            }, message.redactorInput(email.redactorConfig))
+        }}
+    {% endif %}
     <div class="field">
         {{ hiddenInput(name, '') }}
         <div class="heading">
@@ -105,9 +117,13 @@
 
 {% js %}
     new Craft.AssetSelectInput({{ jsSettings|json_encode|raw }});
-    {% if not email.plain %}
-        $R('#field-body'{% if email.redactorSettings %},{{ email.redactorSettings|json_encode|raw }}{% endif %});
-    {% endif %}
+    Craft.livePreview = new Craft.EmailPreview({
+        langId: '{{ langId }}',
+        emailId: {{ email.id }}
+    });
+    $('.js-preview').click(function(){
+        Craft.livePreview.open();
+    });
     $('.js-add-translation').click(function(e) {
         e.preventDefault();
         let href = $(this).attr('href');

@@ -1,11 +1,11 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\Services;
+namespace Ryssbowh\CraftEmails\services;
 
 use DrewM\MailChimp\MailChimp;
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\Models\MailchimpList;
-use Ryssbowh\CraftEmails\Models\MailchimpMember;
+use Ryssbowh\CraftEmails\models\MailchimpList;
+use Ryssbowh\CraftEmails\models\MailchimpMember;
 use Ryssbowh\CraftEmails\exceptions\MailchimpException;
 use craft\base\Component;
 

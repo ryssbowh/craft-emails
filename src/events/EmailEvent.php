@@ -1,6 +1,6 @@
 <?php 
 
-namespace Ryssbowh\CraftEmails\Events;
+namespace Ryssbowh\CraftEmails\events;
 
 use yii\base\Event;
 

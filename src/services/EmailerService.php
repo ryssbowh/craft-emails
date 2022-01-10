@@ -1,10 +1,10 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\Services;
+namespace Ryssbowh\CraftEmails\services;
 
 use Craft;
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\Records\EmailLog;
+use Ryssbowh\CraftEmails\records\EmailLog;
 use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use craft\elements\Asset;
 use craft\helpers\App;
@@ -32,6 +32,7 @@ class EmailerService extends Mailer
         $mail = Emails::$plugin->emails->getByKey($message->key);
         $generalConfig = Craft::$app->getConfig()->getGeneral();
         $settings = App::mailSettings();
+        $view = Craft::$app->getView();
 
         if ($message instanceof Message && $message->key !== null and $mail !== null) {
             if ($message->language === null) {
@@ -79,25 +80,19 @@ class EmailerService extends Mailer
             $generalConfig->generateTransformsBeforePageLoad = true;
 
             // Render the subject and body text
-            $view = Craft::$app->getView();
             $subject = $view->renderString($systemMessage->subject, $variables, View::TEMPLATE_MODE_SITE);
-            $body = $view->renderString($systemMessage->body, $variables, View::TEMPLATE_MODE_SITE);
-
-            // Remove </> from around URLs, so they’re not interpreted as HTML tags
-            $textBody = preg_replace('/<(https?:\/\/.+?)>/', '$1', $body);
+            $body = $view->renderString($systemMessage->parsedBody, $variables, View::TEMPLATE_MODE_SITE);
 
             $message->setSubject($subject);
-            $message->setTextBody($textBody);
-
-            try {
-                $message->setHtmlBody($view->renderTemplate($mail->template, array_merge($variables, [
-                    'body' => Template::raw(Markdown::process($body)),
-                ]), View::TEMPLATE_MODE_SITE));
-            } catch (\Throwable $e) {
-                // Just log it and don't worry about the HTML body
-                Craft::warning('Error rendering email template: ' . $e->getMessage(), __METHOD__);
-                Craft::$app->getErrorHandler()->logException($e);
+            $html = $view->renderTemplate($mail->template, array_merge($variables, [
+                'body' => Template::raw(Markdown::process($body)),
+            ]), View::TEMPLATE_MODE_SITE);
+            if (!$mail->plain) {
+                $message->setHtmlBody($html);
             }
+            // Remove </> from around URLs, so they’re not interpreted as HTML tags
+            $textBody = preg_replace('/<(https?:\/\/.+?)>/', '$1', $html);
+            $message->setTextBody(strip_tags($textBody));
 
             // Set things back to normal
             Craft::$app->language = $language;
@@ -178,20 +173,20 @@ class EmailerService extends Mailer
                 $record->sent = $record->sent + 1;
                 $record->save(false);
                 if ($record->saveLogs) {
-                    $children = $message->getSwiftMessage()->getChildren();
-                    $html = $text = null;
-                    foreach ($children as $child) {
-                        if (get_class($child) != 'Swift_MimePart') {
-                            continue;
-                        }
-                        if ($child->getHeaders()->get('content-type')->getValue() == 'text/html') {
-                            $html = $child->getBody();
-                        }
-                        if ($child->getHeaders()->get('content-type')->getValue() == 'text/plain') {
-                            $text = $child->getBody();
+                    if ($mail->plain) {
+                        $body = $message->getSwiftMessage()->getBody();
+                    } else {
+                        $children = $message->getSwiftMessage()->getChildren();
+                        foreach ($children as $child) {
+                            if (get_class($child) != 'Swift_MimePart') {
+                                continue;
+                            }
+                            if ($child->getHeaders()->get('content-type')->getValue() == 'text/html') {
+                                $body = $child->getBody();
+                                break;
+                            }
                         }
                     }
-                    $body = $html ?? $text ?? '';
                     if ($attachements === null) {
                         $attachements = Emails::$plugin->attachements->get($message->key, $message->language);
                     }

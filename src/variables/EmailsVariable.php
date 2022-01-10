@@ -1,6 +1,6 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\Services;
+namespace Ryssbowh\CraftEmails\variables;
 
 use Ryssbowh\CraftEmails\Emails;
 

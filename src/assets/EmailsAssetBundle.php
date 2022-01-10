@@ -13,6 +13,10 @@ class EmailsAssetBundle extends AssetBundle
         'emails.css'
     ];
 
+    public $js = [
+        'preview.js'
+    ];
+
     public $depends = [
         CpAsset::class
     ];

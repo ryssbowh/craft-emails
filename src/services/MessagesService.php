@@ -1,15 +1,15 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\Services;
+namespace Ryssbowh\CraftEmails\services;
 
 use Craft;
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\Events\EmailEvent;
-use Ryssbowh\CraftEmails\Models\Email;
-use Ryssbowh\CraftEmails\Models\EmailLog;
-use Ryssbowh\CraftEmails\Records\Email as EmailRecord;
-use Ryssbowh\CraftEmails\Records\EmailAttachement;
-use Ryssbowh\CraftEmails\Records\EmailLog as EmailLogRecord;
+use Ryssbowh\CraftEmails\events\EmailEvent;
+use Ryssbowh\CraftEmails\models\Email;
+use Ryssbowh\CraftEmails\models\EmailLog;
+use Ryssbowh\CraftEmails\records\Email as EmailRecord;
+use Ryssbowh\CraftEmails\records\EmailAttachement;
+use Ryssbowh\CraftEmails\records\EmailLog as EmailLogRecord;
 use Ryssbowh\CraftEmails\exceptions\EmailException;
 use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use craft\base\Component;

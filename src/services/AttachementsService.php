@@ -1,8 +1,8 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\Services;
+namespace Ryssbowh\CraftEmails\services;
 
-use Ryssbowh\CraftEmails\Records\EmailAttachement;
+use Ryssbowh\CraftEmails\records\EmailAttachement;
 use craft\base\Component;
 use craft\elements\Asset;
 use craft\records\SystemMessage;

@@ -3,10 +3,11 @@
 namespace Ryssbowh\CraftEmails\controllers;
 
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\Models\Email;
-use Ryssbowh\CraftEmails\Models\EmailShot;
+use Ryssbowh\CraftEmails\models\Email;
+use Ryssbowh\CraftEmails\models\EmailShot;
 use Ryssbowh\CraftEmails\assets\EmailsAssetBundle;
 use Ryssbowh\CraftEmails\assets\PreviewAssetBundle;
+use Ryssbowh\CraftEmails\helpers\RedactorHelper;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
 use craft\helpers\App;
 use craft\helpers\Template;
@@ -81,18 +82,19 @@ class CpEmailsController extends Controller
             'replyToEmail' => $replyToEmail,
             'fromName' => $fromName,
         ];
-        $subjectError = $bodyError = '';
+        $subject = $this->request->getParam('subject');
+        $body = $this->request->getParam('body');
+        $subjectError = '';
+        $bodyError = '';
         try {
-            $subject = $view->renderString($message->subject, $variables, $view::TEMPLATE_MODE_SITE);
+            $subject = $view->renderString($subject, $variables, $view::TEMPLATE_MODE_SITE);
         } catch (\Throwable $e) {
-            $subject = $message->subject;
-            $subjectError = \Craft::t('emails', 'Unable to render the subject properly');
+            $subjectError = \Craft::t('emails', 'Error while rendering subject, raw twig is displayed.');
         }
         try {
-            $body = $view->renderString($message->body, $variables, $view::TEMPLATE_MODE_SITE);
+            $body = $view->renderString($body, $variables, $view::TEMPLATE_MODE_SITE);
         } catch (\Throwable $e) {
-            $body = $message->body;
-            $subjectError = \Craft::t('emails', 'Unable to render the body properly');
+            $bodyError = \Craft::t('emails', 'Error while rendering body, raw twig is displayed.');
         }
         $body = $view->renderTemplate($email->template, array_merge($variables, [
             'body' => Template::raw(Markdown::process($body)),
@@ -100,8 +102,7 @@ class CpEmailsController extends Controller
         // Set things back to normal
         \Craft::$app->language = $language;
         $generalConfig->generateTransformsBeforePageLoad = $generateTransformsBeforePageLoad;
-        \Craft::$app->view->registerAssetBundle(PreviewAssetBundle::class);
-        return $this->renderTemplate('emails/preview', [
+        return $this->asJson([
             'subject' => $subject,
             'body' => $body,
             'subjectError' => $subjectError,
@@ -174,7 +175,7 @@ class CpEmailsController extends Controller
      */
     public function actionEditContent(int $id, ?string $langId = null)
     {
-        $this->requirePermission('modifyEmailContent');
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         if ($langId === null) {
             $langId = \Craft::$app->getSites()->getPrimarySite()->language;
         }
@@ -193,13 +194,16 @@ class CpEmailsController extends Controller
         $this->requirePermission('modifyEmailContent');
         $langId = $this->request->getRequiredParam('langId');
         $attachements = $this->request->getParam('attachements', []);
+        $key = $this->request->getRequiredParam('key');
+        $email = Emails::$plugin->emails->getByKey($key);
         if (is_string($attachements)) {
             $attachements = [];
         }
+        $body = $this->request->getRequiredParam('body');
         $message = new SystemMessage([
             'key' => $this->request->getRequiredParam('key'),
             'subject' => $this->request->getRequiredParam('subject'),
-            'body' => $this->request->getRequiredParam('body')
+            'body' => $email->plain ? $body : RedactorHelper::serializeBody($body)
         ]);
         if (Emails::$plugin->messages->saveMessage($message, $langId, $attachements)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Content saved.'));
@@ -364,6 +368,7 @@ class CpEmailsController extends Controller
      */
     protected function editContent(SystemMessage $message, string $langId)
     {
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         $email = Emails::$plugin->emails->getByKey($message->key);
         $emailLocales = $email->allDefinedLanguages;
         $translatableLocales = [];
@@ -373,7 +378,6 @@ class CpEmailsController extends Controller
             }
         }
         asort($translatableLocales);
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         return $this->renderTemplate('emails/edit-content', [
             'email' => $email,
             'message' => $message,

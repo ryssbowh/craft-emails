@@ -1,6 +1,6 @@
 <?php 
 
-namespace Ryssbowh\CraftEmails\Models;
+namespace Ryssbowh\CraftEmails\models;
 
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\Records\Email as EmailRecord;
@@ -10,8 +10,6 @@ use craft\elements\Asset;
 use craft\helpers\UrlHelper;
 use craft\models\SystemMessage;
 use craft\records\SystemMessage as SystemMessageRecord;
-use craft\redactor\Field as RedactorField;
-use craft\services\EmailMessageRecord;
 use craft\validators\TemplateValidator;
 
 class Email extends Model
@@ -35,9 +33,6 @@ class Email extends Model
     public $fromName;
     public $replyTo;
 
-    protected $_template;
-    protected $_attachements;
-
     /**
      * @inheritDoc
      */
@@ -47,7 +42,7 @@ class Email extends Model
             [['id', 'uid', 'dateCreated', 'dateUpdated', 'attachements'], 'safe'],
             [['key', 'heading', 'template'], 'required'],
             [['key', 'heading', 'bcc', 'fromName', 'instructions'], 'string'],
-            [['saveLogs', 'system', 'plain'], 'boolean'],
+            [['saveLogs', 'system', 'plain'], 'boolean', 'trueValue' => true, 'falseValue' => false, 'skipOnEmpty' => false],
             ['template', 'string'],
             ['template', TemplateValidator::class],
             [['from', 'replyTo'], function ($attribute) {
@@ -84,29 +79,6 @@ class Email extends Model
     }
 
     /**
-     * Attachements setter
-     * 
-     * @param string|array $attachements
-     */
-    public function setAttachements($attachements)
-    {
-        if (is_string($attachements)) {
-            $attachements = json_decode($attachements, true);
-        }
-        $this->_attachements = $attachements;
-    }
-
-    /**
-     * Attachement getter
-     * 
-     * @return array
-     */
-    public function getAttachements()
-    {
-        return $this->_attachements;
-    }
-
-    /**
      * Populate email from post
      */
     public function populateFromPost()
@@ -128,11 +100,11 @@ class Email extends Model
     {
         $config = [
             'key' => $this->key,
-            'system' => $this->system,
+            'system' => (bool)$this->system,
             'instructions' => $this->instructions,
             'redactorConfig' => $this->redactorConfig,
-            'saveLogs' => $this->saveLogs,
-            'plain' => $this->plain,
+            'saveLogs' => (bool)$this->saveLogs,
+            'plain' => (bool)$this->plain,
             'from' => $this->from,
             'replyTo' => $this->replyTo,
             'bcc' => $this->bcc,
@@ -175,48 +147,5 @@ class Email extends Model
         }
         asort($languages);
         return $languages;
-    }
-
-    /**
-     * Get attachements as elements (assets)
-     * 
-     * @return array
-     */
-    public function getAttachementsElements(): array
-    {
-        if (!$this->attachements) {
-            return [];
-        }
-        return Asset::find()->id($this->attachements)->all();
-    }
-
-    /**
-     * Get redactor settings
-     * 
-     * @return array
-     */
-    public function getRedactorSettings(): array
-    {
-        $settings = [];
-        if ($this->redactorConfig) {
-            $file = \Craft::getAlias('@config/redactor/' . $this->redactorConfig);
-            if (file_exists($file)) {
-                $settings = json_decode(file_get_contents($file), true);
-            }
-        }
-        if (isset($settings['plugins'])) {
-            foreach ($settings['plugins'] as $plugin) {
-                RedactorField::registerRedactorPlugin($plugin);
-            }
-        }
-        return $settings;
-    }
-
-    public function renderSubject(): string
-    {
-    }
-
-    public function renderBody(): string
-    {
     }
 }

@@ -1,13 +1,13 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\Services;
+namespace Ryssbowh\CraftEmails\services;
 
-use Ryssbowh\CraftEmails\Events\EmailShotEvent;
-use Ryssbowh\CraftEmails\Events\SendEmailShotEvent;
-use Ryssbowh\CraftEmails\Models\EmailShot;
-use Ryssbowh\CraftEmails\Models\EmailShotLog;
-use Ryssbowh\CraftEmails\Records\EmailShot as EmailShotRecord;
-use Ryssbowh\CraftEmails\Records\EmailShotLog as EmailShotLogRecord;
+use Ryssbowh\CraftEmails\events\EmailShotEvent;
+use Ryssbowh\CraftEmails\events\SendEmailShotEvent;
+use Ryssbowh\CraftEmails\models\EmailShot;
+use Ryssbowh\CraftEmails\models\EmailShotLog;
+use Ryssbowh\CraftEmails\records\EmailShot as EmailShotRecord;
+use Ryssbowh\CraftEmails\records\EmailShotLog as EmailShotLogRecord;
 use Ryssbowh\CraftEmails\exceptions\EmailShotException;
 use Ryssbowh\CraftEmails\jobs\EmailShotJob;
 use craft\base\Component;
@@ -25,6 +25,15 @@ class EmailShotsService extends Component
     const EVENT_BEFORE_SEND = 'event_before_send';
     const EVENT_AFTER_SEND = 'event_after_send';
 
+    /**
+     * Result of shot after being sent, contains succeeded and failed email addresses
+     * @var array
+     */
+    public $lastRunResult = [];
+
+    /**
+     * @var EmailShot[]
+     */
     protected $_shots = null;
 
     /**
@@ -178,7 +187,7 @@ class EmailShotsService extends Component
         }
         $email = \Craft::$app->getMailer()
             ->composeFromKey($shot->email->key, $shot->variables);
-        $success = [];
+        $success = $failed = [];
         foreach ($shot->allEmails as $emailAddress => $name) {
             if (is_int($emailAddress)) {
                 $emailAddress = $name;
@@ -190,11 +199,13 @@ class EmailShotsService extends Component
                     $emailAddress => $name
                 ])->send();
                 $success[$emailAddress] = $name;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
+                $failed[$emailAddress] = $name;
                 \Craft::$app->errorHandler->logException($e);
-                return false;
             }
         }
+        $this->lastRunResult = [$success, $failed];
+        $event->result = $this->lastRunResult;
         $this->afterSend($shot, $success);
         $this->triggerEvent(self::EVENT_AFTER_SEND, $event);
         return true;

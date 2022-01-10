@@ -163,6 +163,9 @@
                 if (data.message) {
                     Craft.cp.displayNotice(data.message);
                 }
+                if (data.error) {
+                    Craft.cp.displayError(data.error);
+                }
             }).always(function() {
                 button.find('.spinner').hide();
                 button.attr('disabled', false);
