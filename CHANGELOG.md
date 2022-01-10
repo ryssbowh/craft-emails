@@ -1,6 +1,6 @@
 # Web Puzzlers Emails Changelog
 
-## 1.2.0 - 10-01-2022
+## 1.2.0 - 2022-01-10
 
 ### Fixed
 - Plain text emails dont have html
@@ -11,12 +11,12 @@
 - better preview
 - better redactor integration (links to entry, category, assets), enabled elements refs
 
-## 1.1.1 - 10/01/2022
+## 1.1.1 - 2022-01-10
 
 ### Fixed
 - French translations
 
-## 1.1.0 - 10/01/2022
+## 1.1.0 - 2022-01-10
 
 ### Fixed
 - Plugin would show up as disabled after install
@@ -33,7 +33,7 @@
 - Email preview
 - Translatable attachements
 
-## 1.0.1 - 09/01/2022
+## 1.0.1 - 2022-01-09
 
 ### Fixed
 - Compress email logs setting
@@ -43,7 +43,7 @@
 - "View emails" button on email shots dashboard
 - Mailchimp lists integration through API
 
-## 1.0.0 - 08/01/2022
+## 1.0.0 - 2022-01-08
 
 ### Added
 - Initial release
