@@ -24,8 +24,11 @@ Emails config are saved in project config and will populate from an environment 
 
 ![Config](/images/config.png)
 
-Emails content (subject, body and attachements) is translatable, and will not be saved in project config.  
+Emails content (subject, body and attachements) is translatable, and will not be saved in project config.
+
 There will be one translation available per site language, define new sites with different languages to access translations. Your emails translation will be used automatically when sending emails from different websites.  
+:warning: Changing the language of the primary site will change the language of the emails associated.
+
 Emails can be previewed.
 
 ![Content](/images/content.png)
