@@ -1,6 +1,6 @@
-# ryssbowh/craft-emails Changelog
+# Web Puzzlers Emails Changelog
 
-## 1.2.0 10-01-2022
+## 1.2.0 - 10-01-2022
 
 ### Fixed
 - Plain text emails dont have html
