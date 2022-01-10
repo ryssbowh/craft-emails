@@ -4,6 +4,7 @@
 
 ### Changed
 - move messages into their own service
+- better quick shot error handling
 
 ## 1.1.1 - 10/01/2022
 
