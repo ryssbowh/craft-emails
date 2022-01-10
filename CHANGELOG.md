@@ -1,6 +1,11 @@
 # ryssbowh/craft-emails Changelog
 
-## 1.1.0 - 09/01/2022
+## 1.1.1 - 10/01/2022
+
+### Fixed
+- French translations
+
+## 1.1.0 - 10/01/2022
 
 ### Fixed
 - Plugin would show up as disabled after install
