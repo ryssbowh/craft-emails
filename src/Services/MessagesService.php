@@ -55,7 +55,7 @@ class MessagesService extends Component
             ->andWhere(['not in', 'key', $systemKeys])
             ->all();
         foreach ($otherMessages as $message) {
-            $email = $this->getByKey($message->key);
+            $email = Emails::$plugin->emails->getByKey($message->key);
             $messages[] = [
                 'key' => $message->key,
                 'heading' => $email->heading,

@@ -191,7 +191,8 @@ class EmailShotsService extends Component
                 ])->send();
                 $success[$emailAddress] = $name;
             } catch (\Exception $e) {
-                \Craft::$app->errorHandler->handleException($e);
+                \Craft::$app->errorHandler->logException($e);
+                return false;
             }
         }
         $this->afterSend($shot, $success);
