@@ -3,7 +3,7 @@
 namespace Ryssbowh\CraftEmails\models;
 
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\Records\Email as EmailRecord;
+use Ryssbowh\CraftEmails\records\Email as EmailRecord;
 use craft\base\Model;
 use craft\elements\Asset;
 use craft\elements\User;

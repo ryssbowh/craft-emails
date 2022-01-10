@@ -2,7 +2,7 @@
 
 namespace Ryssbowh\CraftEmails\events;
 
-use Ryssbowh\CraftEmails\Models\EmailShot;
+use Ryssbowh\CraftEmails\models\EmailShot;
 use yii\base\Event;
 
 class SendEmailShotEvent extends Event

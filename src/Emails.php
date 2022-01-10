@@ -14,7 +14,6 @@ use Ryssbowh\CraftEmails\services\EmailShotsService;
 use Ryssbowh\CraftEmails\services\EmailSourceService;
 use Ryssbowh\CraftEmails\services\EmailerService;
 use Ryssbowh\CraftEmails\services\EmailsService;
-use Ryssbowh\CraftEmails\services\EmailsVariable;
 use Ryssbowh\CraftEmails\services\MailchimpService;
 use Ryssbowh\CraftEmails\services\MessagesService;
 use Ryssbowh\CraftEmails\variables\EmailsVariable;
@@ -32,6 +31,7 @@ use craft\helpers\App;
 use craft\mail\Mailer;
 use craft\models\SystemMessage;
 use craft\records\Site;
+use craft\services\Plugins;
 use craft\services\ProjectConfig;
 use craft\services\SystemMessages;
 use craft\services\UserPermissions;
@@ -372,8 +372,13 @@ class Emails extends Plugin
      */
     protected function afterInstall()
     {
-        Emails::$plugin->emails->install();
-        \Craft::$app->plugins->enablePlugin('emails');
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
+            function () {
+                Emails::$plugin->emails->install();
+            }
+        );
     }
 
     /**

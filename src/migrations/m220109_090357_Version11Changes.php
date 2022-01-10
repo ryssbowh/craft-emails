@@ -36,10 +36,7 @@ class m220109_090357_Version11Changes extends Migration
      */
     public function safeDown()
     {
-        $this->dropColumn('{{%emails}}', 'template');
-        $this->addColumn('{{%emails_logs}}', 'content', $this->binary()->after('user_id'));
-        $this->addColumn('{{%emails}}', 'subject', $this->string(255)->defaultValue('')->after('heading'));
-        $this->addColumn('{{%emails}}', 'body', $this->longText()->defaultValue('')->after('subject'));
-        $this->dropTableIfExists('{{%emails_attachements%}}');
+        echo "m220109_090357_Version11Changes cannot be reverted.\n";
+        return false;
     }
 }

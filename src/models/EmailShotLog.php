@@ -4,8 +4,8 @@ namespace Ryssbowh\CraftEmails\models;
 
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\models\Email;
-use Ryssbowh\CraftEmails\Records\Email as EmailRecord;
-use Ryssbowh\CraftEmails\Records\EmailShot as EmailShotRecord;
+use Ryssbowh\CraftEmails\records\Email as EmailRecord;
+use Ryssbowh\CraftEmails\records\EmailShot as EmailShotRecord;
 use Ryssbowh\CraftEmails\exceptions\EmailSourceException;
 use Ryssbowh\CraftEmails\interfaces\EmailSourceInterface;
 use craft\base\Model;
