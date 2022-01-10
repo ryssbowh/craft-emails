@@ -189,13 +189,16 @@ class CpShotsController extends Controller
             'saveLogs' => $this->request->getBodyParam('saveLogs', false),
         ]);
         if ($shot->validate()) {
-            Emails::$plugin->emailShots->send($shot);
-            if ($shot->useQueue) {
-                \Craft::$app->session->setNotice(\Craft::t('emails', '{number} emails have been sent to the queue.', ['number' => $shot->emailCount]));
-            } else {
-                \Craft::$app->session->setNotice(\Craft::t('emails', '{number} emails sent.', ['number' => $shot->emailCount]));
+            if (Emails::$plugin->emailShots->send($shot)) {
+                if ($shot->useQueue) {
+                    \Craft::$app->session->setNotice(\Craft::t('emails', '{number} emails have been sent to the queue.', ['number' => $shot->emailCount]));
+                } else {
+                    \Craft::$app->session->setNotice(\Craft::t('emails', '{number} emails sent.', ['number' => $shot->emailCount]));
+                }
+                return $this->redirect(UrlHelper::cpUrl('emails/shots'));
             }
-            return $this->redirect(UrlHelper::cpUrl('emails/shots'));
+            \Craft::$app->session->setError(\Craft::t('emails', 'Error while sending email shot'));
+            return $this->actionQuickShot($shot);
         }
         return $this->actionQuickShot($shot);
     }
