@@ -46,11 +46,6 @@ class EmailLog extends Model
     public $subject;
 
     /**
-     * @var string
-     */
-    public $content;
-
-    /**
      * @var boolean
      */
     public $is_console;
@@ -89,7 +84,7 @@ class EmailLog extends Model
     {
         return [
             [['id', 'email_id', 'uid', 'dateCreated', 'dateUpdated', 'attachements', 'from'], 'safe'],
-            [['email', 'bcc', 'content', 'subject', 'cc', 'replyTo'], 'string']
+            [['email', 'bcc', 'subject', 'cc', 'replyTo'], 'string']
         ];
     }
 
@@ -267,19 +262,6 @@ class EmailLog extends Model
     }
 
     /**
-     * Get content uncompressed
-     * 
-     * @return string
-     */
-    public function getUncompressedContent(): string
-    {
-        if (Emails::$plugin->settings->compressLogs) {
-            return gzinflate($this->content);
-        }
-        return $this->content;
-    }
-
-    /**
      * Email getter
      * 
      * @return ?Email
@@ -293,11 +275,35 @@ class EmailLog extends Model
     }
 
     /**
+     * Body getter
+     * 
+     * @return string
+     */
+    public function getBody(): string
+    {
+        $file = \Craft::getAlias('@storage/logs/emails/' . $this->uid);
+        if (file_exists($file)) {
+            return file_get_contents($file);
+        }
+        return '';
+    }
+
+    /**
+     * Text body getter
+     * 
+     * @return string
+     */
+    public function getTextBody(): string
+    {
+        return strip_tags($this->body);
+    }
+
+    /**
      * @inheritDoc
      */
     public function fields()
     {
-        return ['subject', 'to', 'from', 'replyTo', 'bcc', 'cc', 'from', 'uncompressedContent'];
+        return ['subject', 'to', 'from', 'replyTo', 'bcc', 'cc', 'from', 'body'];
     }
 
     /**

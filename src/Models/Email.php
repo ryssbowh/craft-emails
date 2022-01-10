@@ -8,7 +8,11 @@ use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use craft\base\Model;
 use craft\elements\Asset;
 use craft\helpers\UrlHelper;
+use craft\models\SystemMessage;
+use craft\records\SystemMessage as SystemMessageRecord;
 use craft\redactor\Field as RedactorField;
+use craft\services\EmailMessageRecord;
+use craft\validators\TemplateValidator;
 
 class Email extends Model
 {
@@ -16,22 +20,22 @@ class Email extends Model
     public $uid;   
     public $dateCreated;
     public $dateUpdated;
-    public $subject = '';
+    public $template = 'emails/template';
     public $redactorConfig;
     public $system = false;
     public $plain = false;
-    public $body = '';
     public $bcc;
     public $cc;
     public $heading = '';
     public $instructions = '';
     public $key;
-    public $saveLogs;
+    public $saveLogs = true;
     public $sent;
     public $from;
     public $fromName;
     public $replyTo;
 
+    protected $_template;
     protected $_attachements;
 
     /**
@@ -41,9 +45,11 @@ class Email extends Model
     {
         return [
             [['id', 'uid', 'dateCreated', 'dateUpdated', 'attachements'], 'safe'],
-            [['key', 'heading'], 'required'],
-            [['subject', 'key', 'heading', 'body', 'bcc', 'fromName', 'instructions'], 'string'],
+            [['key', 'heading', 'template'], 'required'],
+            [['key', 'heading', 'bcc', 'fromName', 'instructions'], 'string'],
             [['saveLogs', 'system', 'plain'], 'boolean'],
+            ['template', 'string'],
+            ['template', TemplateValidator::class],
             [['from', 'replyTo'], function ($attribute) {
                 $email = \Craft::parseEnv($this->$attribute);
                 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -107,8 +113,8 @@ class Email extends Model
     {
         $request = \Craft::$app->request;
         foreach ($this->safeAttributes() as $attribute) {
-            if ($request->getBodyParam($attribute) !== null) {
-                $this->$attribute = $request->getBodyParam($attribute);
+            if ($request->getParam($attribute) !== null) {
+                $this->$attribute = $request->getParam($attribute);
             }
         }
     }
@@ -126,12 +132,49 @@ class Email extends Model
             'instructions' => $this->instructions,
             'redactorConfig' => $this->redactorConfig,
             'saveLogs' => $this->saveLogs,
-            'plain' => $this->plain
+            'plain' => $this->plain,
+            'from' => $this->from,
+            'replyTo' => $this->replyTo,
+            'bcc' => $this->bcc,
+            'cc' => $this->cc,
+            'heading' => $this->heading,
+            'instructions' => $this->instructions,
+            'fromName' => $this->fromName,
+            'template' => $this->template,
         ];
-        foreach (Emails::$plugin->settings->configDriven as $attribute) {
-            $config[$attribute] = $this->$attribute;
-        }
         return $config;
+    }
+
+    /**
+     * Get the system message associated to that email, for a language.
+     * 
+     * @param  string|null $language
+     * @return ?SystemMessage
+     */
+    public function getMessage(?string $language = null): ?SystemMessage
+    {
+        return Emails::$plugin->emails->getMessage($this->key, $language);
+    }
+
+    /**
+     * Get all languages for which a message is defined
+     * 
+     * @return array
+     */
+    public function getAllDefinedLanguages()
+    {
+        $languages = [];
+        foreach (\Craft::$app->i18n->getSiteLocales() as $locale) {
+            $record = SystemMessageRecord::findOne([
+                'key' => $this->key,
+                'language' => $locale->id,
+            ]);
+            if ($record) {
+                $languages[$locale->id] = $locale->displayName;
+            }
+        }
+        asort($languages);
+        return $languages;
     }
 
     /**
@@ -167,5 +210,13 @@ class Email extends Model
             }
         }
         return $settings;
+    }
+
+    public function renderSubject(): string
+    {
+    }
+
+    public function renderBody(): string
+    {
     }
 }

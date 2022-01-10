@@ -7,40 +7,34 @@ Define email shots to send to various users.
 
 ![List](/images/list.png)
 
-Once this plugin is installed, you'll be able to change, for each email :
-- It's subject
-- It's body
+Change the subject, body and attachements of Craft system emails and define new ones.  
+Emails config are saved in project config and will populate from an environment to another, the config includes :
+- The email identifier (key)
+- The email heading
+- The template used for rendering the email, defaults to 'emails/template'
+- Whether the email is plain text or html
+- Redactor config for the body
+- Some instructions for the body
 - The email it's coming from, will default to system email config
 - The name it's coming from, will default to system email config
 - The reply to address, will default to system email config
 - List of email addresses to CC
 - List of email addresses to BCC
-- Add assets as attachements
-- Have a different redactor config
+- Wether the logs of sent emails shoud be saved
+
+![Config](/images/config.png)
+
+Emails content (subject, body and attachements) is translatable, and will not be saved in project config.  
+There will be one translation available per site language, define new sites with different languages to access translations. Your emails translation will be used automatically when sending emails from different websites.  
+Emails can be previewed.
 
 ![Content](/images/content.png)
 
-### Logging
+### Logs
 
-You can choose to save a log of each email sent in database for future reference. The logs are compressed in database so not to take too much space.  
-Enabling the logs will allow you to resend previously sent emails.
+Enabling logs will allow resending the emails
 
 ![Logs](/images/logs.png)
-
-### Project Config
-
-You can choose which email parameter(s) are considered as config. The chosen ones will be included in the project config and will be modified from an environment to another, possible parameters are:
-- Heading
-- From
-- Name from
-- Reply to email
-- Cc
-- Bcc
-- Subject
-- Body
-- Attachements
-
-![Config](/images/config.png)
 
 ### Sending emails
 
@@ -58,6 +52,18 @@ Craft::$app->getMailer()
 ```
 
 The email will automatically be modified according to its config before it's sent.
+
+You may modify variables passed to any email using this event :
+
+```
+Event::on(
+    Mailer::class, 
+    Mailer::EVENT_BEFORE_PREP, 
+    function (MailEvent $e) {
+        $e->message->variables['name'] = 'value';
+    }
+);
+```
 
 ## Email shots
 
@@ -79,7 +85,7 @@ Email shots can use the queue to send emails, using the queue present advantages
 
 ### Logs
 
-See what email shot has been sent to which email with the logs :
+See what email shot has been sent to which emails and by whom with the logs :
 
 ![Shot logs](/images/shot-logs.png)
 
@@ -101,7 +107,7 @@ Email sources must implement `EmailSourceInterface`. Exceptions will be thrown w
 
 ### Variables
 
-If the email you send with a shot expects bespoke variables, you will need to define them manually before the shot is sent :
+You can define variables manually before the shot is sent, they will be passed to the email :
 
 ```
 Event::on(
@@ -125,14 +131,14 @@ Send an email shot :
 
 ## Permissions
 
-7 new permissions :
+8 new permissions :
 
 - Access Emails (under General)
 - Add and delete email templates
 - Modify emails content
 - Modify emails config 
-- See emails logs (applies to shot logs as well)
-- Delete emails logs (applies to shot logs as well)
+- See logs (emails & shots)
+- Delete logs (emails & shots)
 - Manage email shots
 - Send emails
 

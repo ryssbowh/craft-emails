@@ -1,0 +1,29 @@
+{% extends "_layouts/base" %}
+
+{% set title = 'Email preview'|t('emails') %}
+
+{% block body %}
+    {% if bodyError or subjectError %}
+        <div class="warning-banner">
+            {% if subjectError %}
+                {{ subjectError }}<br/>
+            {% endif %}
+            {% if bodyError %}
+                {{ bodyError }}<br/>
+            {% endif %}
+        </div>
+    {% endif %}
+    <div id="email-preview">
+        <label>{{ 'Subject'|t('emails') }}:</label>
+        <div class="subject">
+            {{ subject }}
+        </div>
+        <label>{{ 'Body'|t('emails') }}:</label>
+        <div class="iframe-wrapper">
+            <iframe src="data:text/html;charset=utf-8,{{ body }}"></iframe>
+        </div>
+        <div class="actions">
+            <button class="btn" onclick="window.close();">{{ 'Close'|t('app') }}</button>
+        </div>
+    </div>
+{% endblock %}

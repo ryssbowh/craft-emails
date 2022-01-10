@@ -76,7 +76,7 @@ class EmailShot extends Model
     /**
      * @var boolean
      */
-    public $saveLogs = false;
+    public $saveLogs = true;
 
     /**
      * @var array

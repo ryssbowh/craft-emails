@@ -44,6 +44,9 @@
 .justify-between {
     justify-content: space-between;
 }
+.justify-end {
+    justify-content: end;   
+}
 .field.third {
     width: 33.3%;
 }

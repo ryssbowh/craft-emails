@@ -1,7 +1,7 @@
 <?php 
 
 return [
-	"0 means forever" => "0 means forever",
+	"0 means forever, -1 means no cache" => "0 means forever, -1 means no cache",
 	"Actions" => "Actions",
 	"Add an Email" => "Add an Email",
 	"Add and delete email templates" => "Add and delete email templates",
@@ -114,6 +114,7 @@ return [
 	"deleted user" => "deleted user",
 	"email shot '{name}'" => "email shot '{name}'",
 	"minutes" => "minutes",
+	"quick email shot" => "quick email shot",
 	"system" => "system",
 	"{number} emails have been sent to the queue." => "{number} emails have been sent to the queue.",
 	"{number} emails sent." => "{number} emails sent.",

@@ -1,90 +1,145 @@
-{% extends "emails/_includes/email" %}
+{% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle("craft\\redactor\\assets\\redactor\\RedactorAsset") %}
+{% do view.registerAssetBundle("craft\\web\\assets\\prismjs\\PrismJsAsset") %}
 
+{% set tabs = {} %}
 {% set title = 'Edit Email Content'|t('emails') %}
 {% set fullPageForm = true %}
-{% set errors = email.getErrors() %}
 {% set emailSettings = craft.app.systemSettings.getSettings('email') %}
+{% set id = 'field-attachements' %}
+{% set name = 'attachements' %}
+{% set selectedTab = langId %}
+{% set errors = message.errors %}
+{% set jsSettings = {
+    id: id,
+    name: name,
+    elementType: 'craft\\elements\\Asset',
+    viewMode: 'small',
+    prevalidate: false,
+    canUpload: true,
+    modalSettings: {
+        hideSidebar: false
+    }
+} %}
+{% for id, name in emailLocales %}
+    {% set tabs = tabs|merge({
+        (id): {
+            label: name,
+            selected: langId == id,
+            url: url("emails/edit/" ~ email.id ~ "/" ~ id)
+        }
+    }) %}
+{% endfor %}
+{% set redactorSettings = '' %}
 
-{% set selectedTab = 'content' %}
+
+{% block toolbar %}
+    <a href="{{ url('emails') }}" class="btn back">{{ 'Back'|t('app') }}</a>
+    <a href="{{ url('emails/preview/' ~ email.id ~ '/' ~ langId) }}" target="_blank" class="btn">{{ 'Preview'|t('emails') }}</a>
+    {% if translatableLocales|length %}
+        <button class="btn menubtn" type="button">{{ 'Add translation'|t('emails') }}</button>
+        <div class="menu">
+            <ul>
+                {% for id, name in translatableLocales %}
+                    <li><a data-locale="{{ id }}" class="js-add-translation" href="{{ url('emails/edit/' ~ email.id ~ '/' ~ id) }}">{{ name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    {% if primaryLanguage != langId %}
+        <a href="{{ url('emails/edit/' ~ email.id) }}" data-locale="{{ langId }}" class="js-delete btn submit">{{ 'Delete'|t('emails') }}</a>
+    {% endif %}
+{% endblock %}
 
 {% block content %}
     {{ actionInput('emails/cp-emails/save-content') }}
-    {{ hiddenInput('id', email.id) }}
-    {% if 'heading' not in settings.configDriven %}
-        {{ forms.textField({
-            label: 'Heading'|t('emails'),
-            name: 'heading',
-            required: true,
-            value: email.heading,
-            errors: errors['heading'] ?? []
-        }) }}
-    {% endif %}
-    {% if 'from' not in settings.configDriven %}
-        {{ forms.autosuggestField({
-            label: 'Email from'|t('emails'),
-            type: 'email',
-            name: 'from',
-            value: email.from,
-            suggestEnvVars: true,
-            placeholder: emailSettings.fromEmail,
-            errors: errors['from'] ?? []
-        }) }}
-    {% endif %}
-    {% if 'fromName' not in settings.configDriven %}
-        {{ forms.autosuggestField({
-            label: 'Name from'|t('emails'),
-            name: 'fromName',
-            value: email.fromName,
-            suggestEnvVars: true,
-            placeholder: emailSettings.fromName,
-            errors: errors['fromName'] ?? []
-        }) }}
-    {% endif %}
-    {% if 'replyTo' not in settings.configDriven %}
-        {{ forms.autosuggestField({
-            label: 'Reply to email'|t('emails'),
-            type: 'email',
-            name: 'replyTo',
-            value: email.replyTo,
-            suggestEnvVars: true,
-            placeholder: emailSettings.replyToEmail ?? emailSettings.fromEmail,
-            errors: errors['replyTo'] ?? []
-        }) }}
-    {% endif %}
-    {% if 'cc' not in settings.configDriven %}
-        {{ forms.autosuggestField({
-            label: 'Cc'|t('emails'),
-            name: 'cc',
-            value: email.cc,
-            suggestEnvVars: true,
-            instructions: 'Comma separated emails'|t('emails'),
-            errors: errors['cc'] ?? []
-        }) }}
-    {% endif %}
-    {% if 'bcc' not in settings.configDriven %}
-        {{ forms.autosuggestField({
-            label: 'Bcc'|t('emails'),
-            name: 'bcc',
-            value: email.bcc,
-            suggestEnvVars: true,
-            instructions: 'Comma separated emails'|t('emails'),
-            errors: errors['bcc'] ?? []
-        }) }}
-    {% endif %}
-    {% if 'subject' not in settings.configDriven %}
-        {{ forms.textareaField({
-            label: 'Subject'|t('emails'),
-            name: 'subject',
-            value: email.subject,
-            instructions: 'Subject of the email, twig supported'|t('emails'),
-            errors: errors['subject'] ?? []
-        }) }}
-    {% endif %}
-    {% if 'body' not in settings.configDriven %}
-        {% include "emails/_includes/body" %}
-    {% endif %}
-    {% if 'attachements' not in settings.configDriven %}
-        {% include "emails/_includes/attachements" %}
-    {% endif %}
+    {{ hiddenInput('key', email.key) }}
+    {{ hiddenInput('langId', langId) }}
+    {{ forms.textareaField({
+        label: 'Subject'|t('emails'),
+        name: 'subject',
+        value: message.subject,
+        required: true,
+        instructions: 'Subject of the email, twig supported'|t('emails'),
+        errors: errors['subject'] ?? []
+    }) }}
+    {{ forms.textareaField({
+        label: 'Body'|t('emails'),
+        name: 'body',
+        value: message.body,
+        instructions: 'Body of the email, twig supported'|t('emails'),
+        tip: email.instructions,
+        required: true,
+        inputAttributes: {id: 'field-body'},
+        errors: errors['body'] ?? []
+    }) }}
+    <div class="field">
+        {{ hiddenInput(name, '') }}
+        <div class="heading">
+            <label>{{ 'Attachements'|t('emails') }}</label>
+        </div>
+        <div id="{{ id }}" class="elementselect">
+            <div class="elements">
+                {% for element in attachements %}
+                    {% include "_elements/element" with {
+                        context: 'field',
+                        size: 'small'
+                    } %}
+                {% endfor %}
+            </div>
+            <div class="flex">
+                {{ tag('button', {
+                    type: 'button',
+                    text: 'Add an Asset'|t('app'),
+                    class: ['btn', 'add', 'icon', 'dashed'],
+                    aria: {
+                        label: 'Add an Asset'|t('app')
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+    {% include "emails/_includes/js-errors" %}
 {% endblock %}
+
+{% js %}
+    new Craft.AssetSelectInput({{ jsSettings|json_encode|raw }});
+    {% if not email.plain %}
+        $R('#field-body'{% if email.redactorSettings %},{{ email.redactorSettings|json_encode|raw }}{% endif %});
+    {% endif %}
+    $('.js-add-translation').click(function(e) {
+        e.preventDefault();
+        let href = $(this).attr('href');
+        $.ajax({
+            url: Craft.getActionUrl('emails/cp-emails/add-translation'),
+            data: {
+                localeId: $(this).data('locale'),
+                key: '{{ email.key }}'
+            },
+            dataType: 'json'
+        }).fail(function (data) {
+            handleError(data);
+        }).done(function (data){
+            window.location.href = href;
+        })
+    });
+    $('.js-delete').click(function(e) {
+        e.preventDefault();
+        if (confirm("{{ 'Are you sure you want to delete this translation?'|t('emails') }}")) {
+            let href = $(this).attr('href');
+            $.ajax({
+                url: Craft.getActionUrl('emails/cp-emails/delete-translation'),
+                data: {
+                    localeId: $(this).data('locale'),
+                    key: '{{ email.key }}'
+                },
+                dataType: 'json'
+            }).fail(function (data) {
+                handleError(data);
+            }).done(function (data){
+                window.location.href = href;
+            })
+        }
+    })
+{% endjs %}

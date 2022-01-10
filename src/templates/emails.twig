@@ -14,7 +14,6 @@
                     <tr>
                         <th>{{ 'Title'|t('app') }}</th>
                         <th>{{ 'Key'|t('emails') }}</th>
-                        <th>{{ 'Subject'|t('emails') }}</th>
                         <th>{{ 'Sent'|t('emails') }}</th>
                         <th>{{ 'Logs'|t('emails') }}</th>
                         <th>{{ 'Actions'|t('emails') }}</th>
@@ -31,7 +30,6 @@
                                 {% endif %}
                             </td>
                             <td>{{ email.key }}</td>
-                            <td>{{ email.subject }}</td>
                             <td>{{ email.sent }}</td>
                             <td>{{ email.saveLogs ? 'Yes'|t('emails') : 'No'|t('emails') }}</td>
                             <td class="actions-cell">

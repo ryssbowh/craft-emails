@@ -1,0 +1,31 @@
+#email-preview {
+    max-width: 500px;
+    margin: auto;
+}
+label {
+    display: block;
+    font-weight: bold;
+}
+iframe {
+    border:none;
+    width: 100%;
+    height: 100%;
+}
+.subject {
+    margin-bottom: 10px;
+}
+.warning-banner {
+    padding: 5px 0;
+    background: #fc7703;
+    text-align: center;
+    margin-bottom: 10px;
+}
+body {
+    margin: 0;
+}
+.actions {
+    margin-top: 10px;
+}
+.iframe-wrapper {
+    height: calc(100vh - 230px);
+}

@@ -18,11 +18,10 @@ class Install extends Migration
         $this->createTable('{{%emails}}', [
             'id' => $this->primaryKey(),
             'key' => $this->string(255)->notNull(),
+            'template' => $this->string(255),
             'system' => $this->boolean()->defaultValue(false),
             'redactorConfig' => $this->string(255),
             'heading' => $this->string(255)->notNull(),
-            'subject' => $this->string(255)->defaultValue(''),
-            'body' => $this->longText()->defaultValue(''),
             'instructions' => $this->text()->defaultValue(''),
             'attachements' => $this->text()->defaultValue(''),
             'from' => $this->string(255),
@@ -42,7 +41,6 @@ class Install extends Migration
             'id' => $this->primaryKey(),
             'email_id' => $this->integer(11),
             'user_id' => $this->integer(11),
-            'content' => $this->binary(),
             'to' => $this->longText(),
             'bcc' => $this->longText(),
             'cc' => $this->longText(),
@@ -82,10 +80,19 @@ class Install extends Migration
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
+        $this->createTable('{{%emails_attachements}}', [
+            'id' => $this->primaryKey(),
+            'message_id' => $this->integer(11)->notNull(),
+            'attachements' => $this->text(),
+            'dateCreated' => $this->dateTime()->notNull(),
+            'dateUpdated' => $this->dateTime()->notNull(),
+            'uid' => $this->uid(),
+        ]);
         
         $this->addForeignKey('emails_logs_email_id_fk', '{{%emails_logs}}', ['email_id'], '{{%emails}}', ['id'], 'CASCADE', null);
         $this->addForeignKey('emails_shots_email_id_fk', '{{%emails_shots}}', ['email_id'], '{{%emails}}', ['id'], 'SET NULL', null);
         $this->addForeignKey('emails_shots_logs_shot_id_fk', '{{%emails_shots_logs}}', ['shot_id'], '{{%emails_shots}}', ['id'], 'CASCADE', null);
+        $this->addForeignKey('emails_attachements_message_id_fk', '{{%emails_attachements}}', ['message_id'], '{{%systemmessages}}', ['id'], 'CASCADE', null);
     }
 
     /**
@@ -93,6 +100,7 @@ class Install extends Migration
      */
     public function safeDown()
     {
+        $this->dropTableIfExists('{{%emails_attachements}}');
         $this->dropTableIfExists('{{%emails_shots_logs}}');
         $this->dropTableIfExists('{{%emails_logs}}');
         $this->dropTableIfExists('{{%emails_shots}}');

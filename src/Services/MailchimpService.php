@@ -66,7 +66,9 @@ class MailchimpService extends Component
                     $cached[$attributes['id']] = $list;
                 }
                 $duration = Emails::$plugin->settings->mailchimpCacheDuration;
-                \Craft::$app->cache->set(self::CACHE_KEY, $cached, $duration * 60);
+                if ($duration !== -1) {
+                    \Craft::$app->cache->set(self::CACHE_KEY, $cached, $duration * 60);
+                }
             }
             $this->_lists = $cached;
         }

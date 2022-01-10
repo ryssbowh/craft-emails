@@ -1,10 +1,4 @@
 <?php
-/**
- * Emails plugin for Craft CMS 3.x
- *
- * @link      https://www.inspire.scot
- * @copyright Copyright (c) 2020 Boris Blondin
- */
 
 namespace Ryssbowh\CraftEmails\Services;
 
@@ -14,15 +8,20 @@ use Ryssbowh\CraftEmails\Events\EmailEvent;
 use Ryssbowh\CraftEmails\Models\Email;
 use Ryssbowh\CraftEmails\Models\EmailLog;
 use Ryssbowh\CraftEmails\Records\Email as EmailRecord;
+use Ryssbowh\CraftEmails\Records\EmailAttachement;
 use Ryssbowh\CraftEmails\Records\EmailLog as EmailLogRecord;
 use Ryssbowh\CraftEmails\exceptions\EmailException;
 use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use craft\base\Component;
+use craft\db\Table;
+use craft\elements\Asset;
 use craft\events\ConfigEvent;
 use craft\events\RebuildConfigEvent;
 use craft\helpers\StringHelper;
 use craft\helpers\Template;
 use craft\mail\Message;
+use craft\models\SystemMessage;
+use craft\records\SystemMessage as SystemMessageRecord;
 use craft\web\View;
 use yii\base\Event;
 use yii\data\Pagination;
@@ -102,11 +101,16 @@ class EmailsService extends Component
             $email = new Email([
                 'key' => $message['key'],
                 'heading' => $message['heading'],
-                'subject' => $message['subject'],
-                'body' => $message['body'],
                 'system' => true
             ]);
             $this->save($email);
+            $langId = \Craft::$app->getSites()->getPrimarySite()->language;
+            $message = new SystemMessage([
+                'key' => $email->key,
+                'subject' => $message->subject,
+                'body' => $message->body,
+            ]);
+            $this->saveMessage($message, $langId);
         }
         if (!\Craft::$app->projectConfig->readOnly) {
             \Craft::$app->projectConfig->set('plugins.emails.dataInstalled', true, null, false);
@@ -164,13 +168,11 @@ class EmailsService extends Component
     {
         if (is_array($ids)) {
             $logs = EmailLogRecord::find()->where(['in', 'id', $ids])->andWhere(['email_id' => $email->id])->all();
-            foreach ($logs as $log) {
-                $log->delete();
-            }
         } else {
-            \Craft::$app->getDb()->createCommand()
-                ->delete(EmailLogRecord::tableName(), ['email_id' => $email->id])
-                ->execute();
+            $logs = EmailLogRecord::find()->where(['email_id' => $email->id])->all();
+        }
+        foreach ($logs as $log) {
+            $log->delete();
         }
     }
 
@@ -182,141 +184,18 @@ class EmailsService extends Component
      */
     public function resend(EmailLog $log): bool
     {
-        $mailer = \Craft::$app->mailer;
-        $message = \Craft::createObject([
-            'class' => $mailer->messageClass,
-            'mailer' => $mailer
-        ]);
-        $message->setSubject($log->subject);
-        $message->setTextBody(strip_tags($log->uncompressedContent));
-        $message->setFrom($log->from);
-        $message->setReplyTo($log->replyTo);
-        $message->setBcc($log->bcc);
-        $message->setCc($log->cc);
-        $message->setTo($log->to);
-        foreach ($log->attachementsElements as $asset) {
-            $fullPath = \Craft::getAlias($asset->volume->path) . '/' . $asset->path;
-            $message->attach($fullPath, [
-                'fileName' => $asset->title
-            ]);
-        }
-
-        // Is there a custom HTML template set?
-        if (Craft::$app->getEdition() === Craft::Pro && $mailer->template) {
-            $template = $mailer->template;
-            $templateMode = View::TEMPLATE_MODE_SITE;
-        } else {
-            // Default to the _special/email.html template
-            $template = '_special/email';
-            $templateMode = View::TEMPLATE_MODE_CP;
-        }
-
-        try {
-            $html = \Craft::$app->view->renderTemplate($template, array_merge($message->variables ?? [], [
-                'body' => Template::raw(Markdown::process($log->uncompressedContent)),
-            ]), $templateMode);
-            $message->setHtmlBody($html);
-        } catch (\Throwable $e) {
-            // Just log it and don't worry about the HTML body
-            \Craft::warning('Error rendering email template: ' . $e->getMessage(), __METHOD__);
-            \Craft::$app->getErrorHandler()->logException($e);
-        }
-        if ($mailer->send($message)) {
-            $message->key = $log->email->key;
-            $this->afterSent($message, $log->attachements);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Operations after an email is sent, increment sent counter, save logs.
-     * 
-     * @param  Message $message
-     * @param  ?array $attachements override attachements
-     */
-    public function afterSent(Message $message, ?array $attachements = null)
-    {
-        if (!$message->key) {
-            return;
-        }
-        $email = $this->getByKey($message->key);
-        if (!$email) {
-            return;
-        }
-        $record = $this->getRecordById($email->id);
-        if (!$record->id) {
-            return;
-        }
-        $record->sent = $record->sent + 1;
-        $record->save(false);
-        if ($record->saveLogs) {
-            $children = $message->getSwiftMessage()->getChildren();
-            $html = $text = null;
-            foreach ($children as $child) {
-                if (get_class($child) != 'Swift_MimePart') {
-                    continue;
-                }
-                if ($child->getHeaders()->get('content-type')->getValue() == 'text/html') {
-                    $html = $child->getBody();
-                }
-                if ($child->getHeaders()->get('content-type')->getValue() == 'text/plain') {
-                    $text = $child->getBody();
-                }
-            }
-            $content = $html ?? $text ?? '';
-            if ($attachements === null) {
-                $attachements = $email->attachements; 
-            }
-            $user = \Craft::$app->getUser()->getIdentity();
-            $log = new EmailLogRecord([
-                'email_id' => $record->id,
-                'subject' => $message->getSubject(),
-                'to' => (array) $message->getTo(),
-                'bcc' => (array) $message->getBcc(),
-                'cc' => (array) $message->getCc(),
-                'content' => Emails::$plugin->settings->compressLogs ? gzdeflate($content) : $content,
-                'from' => $message->getFrom(),
-                'attachements' => $attachements,
-                'replyTo' => $message->getReplyTo(),
-                'user_id' => $user ? $user->id : null,
-                'is_console' => \Craft::$app->request->isConsoleRequest
-            ]);
-            $log->save(false);
-        }
-    }
-
-    /**
-     * Replaces system messages with emails
-     * 
-     * @param  array  $messages
-     * @return array
-     */
-    public function replaceSystemMessages(array $messages): array
-    {
-        $done = [];
-        $out = [];
-        foreach ($messages as $message) {
-            if ($email = $this->getByKey($message['key'])) {
-                $message['heading'] = $email->heading;
-                $message['subject'] = $email->subject;
-                $message['body'] = $email->body;
-                $done[] = $email->key;
-            }
-            $out[] = $message;
-        }
-        foreach ($this->all() as $email) {
-            if (in_array($email->key, $done)) {
-                continue;
-            }
-            $out[] = [
-                'key' => $email->key,
-                'heading' => $email->heading,
-                'subject' => $email->subject,
-                'body' => $email->body,
-            ];
-        }
-        return $out;
+        return \Craft::$app->mailer->resend(
+            $log->email->key,
+            $log->subject,
+            $log->textBody,
+            $log->body,
+            $log->from,
+            $log->replyTo,
+            $log->bcc,
+            $log->cc,
+            $log->to,
+            $log->attachements
+        );
     }
 
     /**
@@ -345,19 +224,145 @@ class EmailsService extends Component
         $projectConfig->set($configPath, $configData);
 
         $record = $this->getRecordByUid($uid);
-        $configDrivenable = array_keys(Emails::$plugin->settings->configDrivenOptions);
-        $configDriven = Emails::$plugin->settings->configDriven;
-        foreach ($configDrivenable as $param) {
-            if (!in_array($param, $configDriven)) {
-                $record->$param = $email->$param;
-            }
-        }
-        $record->save(false);
         $email->setAttributes($record->getAttributes(), false);
         
         $this->_emails = null;
 
         return true;
+    }
+
+    /**
+     * Replaces system messages with emails
+     * 
+     * @param  array  $messages
+     * @return array
+     */
+    public function getAllSystemMessages(array $messages): array
+    {
+        $systemKeys = [];
+        $langId = \Craft::$app->getSites()->getPrimarySite()->language;
+        foreach ($messages as $index => $message) {
+            $record = SystemMessageRecord::find()->where([
+                'language' => $langId,
+                'key' => $message['key']
+            ])->one();
+            $systemKeys[] = $message['key'];
+            if ($record) {
+                $messages[$index]['subject'] = $record->subject;
+                $messages[$index]['body'] = $record->body;
+            }
+        }
+        $otherMessages = SystemMessageRecord::find()
+            ->where(['language' => $langId])
+            ->andWhere(['not in', 'key', $systemKeys])
+            ->all();
+        foreach ($otherMessages as $message) {
+            $email = $this->getByKey($message->key);
+            $messages[] = [
+                'key' => $message->key,
+                'heading' => $email->heading,
+                'subject' => $message->subject,
+                'body' => $message->body,
+            ];
+        }
+        return $messages;
+    }
+
+    /**
+     * Get the system message associated to an email key, for a language.
+     * Defaults to primary site language
+     * 
+     * @param  string|null $langId
+     * @return ?SystemMessage
+     */
+    public function getMessage(string $key, ?string $langId = null): ?SystemMessage
+    {
+        if ($langId === null) {
+            $langId = \Craft::$app->getSites()->getPrimarySite()->language;
+        }
+        return \Craft::$app->systemMessages->getMessage($key, $langId);
+    }
+
+    /**
+     * Change language of messages that are set on default languages.
+     * If some messages were set on the new language they will be deleted
+     * 
+     * @param string $oldLanguage
+     * @param string $newLanguage
+     */
+    public function updatePrimaryMessageLanguage(string $oldLanguage, string $newLanguage)
+    {
+        $messages = SystemMessageRecord::find()->where(['language' => $oldLanguage])->all();
+        $ids = [];
+        foreach ($messages as $message) {
+            $message->language = $newLanguage;
+            $message->save(false);
+            $ids[] = $message->id;
+        }
+        $messages = SystemMessageRecord::find()
+            ->where(['language' => $newLanguage])
+            ->andWhere(['not in', 'id', $ids])
+            ->all();
+        foreach ($messages as $message) {
+            $message->delete();
+        }
+    }
+
+    /**
+     * Save a system message
+     * 
+     * @param  SystemMessage $message
+     * @param  string        $langId
+     * @param  array         $attachements array of ids
+     * @return bool
+     */
+    public function saveMessage(SystemMessage $message, string $langId, array $attachements = []): bool
+    {
+        if (\Craft::$app->systemMessages->saveMessage($message, $langId)) {
+            Emails::$plugin->attachements->save($message->key, $langId, $attachements);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Add a translation
+     * 
+     * @param  string $key
+     * @param  string $langId
+     * @return bool
+     */
+    public function addTranslation(string $key, string $langId): bool
+    {
+        $default = $this->getMessage($key);
+        $message = new SystemMessage([
+            'key' => $key,
+            'subject' => $default->subject,
+            'body' => $default->body
+        ]);
+        return $this->saveMessage($message, $langId, Emails::$plugin->attachements->get($key));
+    }
+
+    /**
+     * Delete a translation
+     * 
+     * @param  string $key
+     * @param  string $langId
+     * @return bool
+     */
+    public function deleteTranslation(string $key, string $langId): bool
+    {
+        if (\Craft::$app->getSites()->getPrimarySite()->language == $langId) {
+            return false;
+        }
+        $record = SystemMessageRecord::findOne([
+            'key' => $key,
+            'language' => $langId,
+        ]);
+        if ($record) {
+            return $record->delete();
+        }
+        return false;
     }
 
     /**
@@ -402,10 +407,32 @@ class EmailsService extends Component
             $email->plain = $data['plain'];
             $email->redactorConfig = $data['redactorConfig'];
             $email->saveLogs = $data['saveLogs'];
-            foreach (Emails::$plugin->settings->configDriven as $attribute) {
-                $email->$attribute = $data[$attribute] ?? null;
+            $email->from = $data['from'];
+            $email->replyTo = $data['replyTo'];
+            $email->bcc = $data['bcc'];
+            $email->cc = $data['cc'];
+            $email->heading = $data['heading'];
+            $email->instructions = $data['instructions'];
+            $email->fromName = $data['fromName'];
+            $email->template = $data['template'];
+
+            if (isset($email->getDirtyAttributes()['key'])) {
+                \Craft::$app->getDb()->createCommand()
+                    ->update(Table::SYSTEMMESSAGES, ['key' => $email->key], ['key' => $email->getOldAttribute('key')])
+                    ->execute();
             }
+
             $email->save(false);
+
+            if ($isNew) {
+                $langId = \Craft::$app->getSites()->getPrimarySite()->language;
+                $message = new SystemMessage([
+                    'key' => $email->key,
+                    'subject' => 'Subject here',
+                    'body' => '<p>Body here</p>'
+                ]);
+                $this->saveMessage($message, $langId);
+            }
             
             $transaction->commit();
         } catch (\Throwable $e) {
@@ -440,6 +467,10 @@ class EmailsService extends Component
         \Craft::$app->getDb()->createCommand()
             ->delete(EmailRecord::tableName(), ['uid' => $uid])
             ->execute();
+        Emails::$plugin->attachements->delete($email->key);
+        \Craft::$app->getDb()->createCommand()
+            ->delete(Table::SYSTEMMESSAGES, ['key' => $email->key])
+            ->execute();
 
         $this->triggerEvent(self::EVENT_AFTER_DELETE, new EmailEvent([
             'email' => $email
@@ -456,45 +487,6 @@ class EmailsService extends Component
         $parts = explode('.', self::CONFIG_KEY);
         foreach ($this->all() as $email) {
             $e->config[$parts[0]][$parts[1]][$email->uid] = $email->getConfig();
-        }
-    }
-
-    /**
-     * Modify message before it's sent
-     * 
-     * @param Message $message
-     */
-    public function modifyMessage(Message $message) 
-    {
-        if (!$message->key) {
-            return;
-        }
-        $mail = $this->getByKey($message->key);
-        if (!$mail) {
-            return;
-        }
-        if ($mail->bcc) {
-            $message->setBcc(EmailHelper::parseEmails($mail->bcc));
-        }
-        if ($mail->cc) {
-            $message->setCc(EmailHelper::parseEmails($mail->cc));
-        }
-        if ($mail->from or $mail->fromName) {
-            $settings = \Craft::$app->systemSettings->getSettings('email');
-            $fromEmail = $mail->from ? \Craft::parseEnv($mail->from) : $settings['fromEmail'];
-            $fromName = $mail->fromName ? \Craft::parseEnv($mail->fromName) : $settings['fromName'];
-            $message->setFrom([$fromEmail => $fromName]);
-        }
-        if ($mail->replyTo) {
-            $message->setReplyTo(\Craft::parseEnv($mail->replyTo));
-        }
-        if ($assets = $mail->attachementsElements) {
-            foreach ($assets as $asset) {
-                $fullPath = \Craft::getAlias($asset->volume->path) . '/' . $asset->path;
-                $message->attach($fullPath, [
-                    'fileName' => $asset->title
-                ]);
-            }
         }
     }
 
@@ -531,5 +523,30 @@ class EmailsService extends Component
         if ($this->hasEventHandlers($type)) {
             $this->trigger($type, $event);
         }
+    }
+
+    /**
+     * Get attachement record
+     * 
+     * @param  string      $key
+     * @param  string|null $langId
+     * @return ?EmailAttachement
+     */
+    protected function getAttachementRecord(string $key, string $langId = null): ?EmailAttachement
+    {
+        if ($langId === null) {
+            $langId = \Craft::$app->getSites()->getPrimarySite()->language;
+        }
+        $record = SystemMessageRecord::findOne([
+            'key' => $key,
+            'language' => $langId,
+        ]);
+        if ($record) {
+            $record = EmailAttachement::findOne([
+                'message_id' => $record->id,
+            ]);
+            return $record;
+        }
+        return null;
     }
 }

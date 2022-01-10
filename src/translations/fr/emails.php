@@ -1,7 +1,7 @@
 <?php 
 
 return [
-	"0 means forever" => "0 pour infini",
+	"0 means forever, -1 means no cache" => "0 pour infini, -1 pour desactiver le cache",
 	"Actions" => "Actions",
 	"Add and delete emails" => "Add and delete emails",
 	"Add and delete email templates" => "Ajouter et supprimer des e-mails",
@@ -64,8 +64,8 @@ return [
 	"Manage email shots" => "Manage email shots",
 	"Edit" => "Modifier",
 	"Changing this may break emails that use this template" => "Modifier ceci peut impacter les e-mails qui utilisent ce template",
-	"Edit config" => "Modifier la configuration",
 	"Edit Email Config" => "Modifier la configuration",
+	"Edit config" => "Modifier la configuration",
 	"Modify emails config" => "Modifier la configuration des e-mails",
 	"Edit Email Content" => "Modifier le contenu de l’e-mail",
 	"Modify emails content" => "Modifier le contenu des e-mails",
@@ -107,6 +107,7 @@ return [
 	"View more" => "Voir plus",
 	"You can save custom Redactor configs as .json files in config/redactor/" => "Vous pouvez ajouter de nouvelles configurations en .json dans config/redactor/",
 	"email shot '{name}'" => "mail-shot '{name}'",
+	"quick email shot" => "mail-shot rapide",
 	"minutes" => "minutes",
 	"system" => "système",
 	"deleted user" => "utilisateur supprimé",

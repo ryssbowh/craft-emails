@@ -5,21 +5,30 @@ namespace Ryssbowh\CraftEmails;
 use Craft;
 use Ryssbowh\CraftEmails\Events\RegisterEmailSourcesEvent;
 use Ryssbowh\CraftEmails\Models\Settings;
+use Ryssbowh\CraftEmails\Services\AttachementsService;
 use Ryssbowh\CraftEmails\Services\EmailShotsService;
 use Ryssbowh\CraftEmails\Services\EmailSourceService;
+use Ryssbowh\CraftEmails\Services\EmailerService;
 use Ryssbowh\CraftEmails\Services\EmailsService;
+use Ryssbowh\CraftEmails\Services\EmailsVariable;
 use Ryssbowh\CraftEmails\Services\MailchimpService;
 use Ryssbowh\CraftEmails\emailSources\AllUsersEmailSource;
 use Ryssbowh\CraftEmails\emailSources\MailchimpEmailSource;
 use Ryssbowh\CraftEmails\emailSources\UserGroupEmailSource;
 use craft\base\Plugin;
+use craft\db\Table;
+use craft\events\DefineBehaviorsEvent;
 use craft\events\RebuildConfigEvent;
 use craft\events\RegisterCacheOptionsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterEmailMessagesEvent;
+use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\helpers\App;
 use craft\mail\Mailer;
+use craft\models\SystemMessage;
+use craft\records\Site;
 use craft\services\ProjectConfig;
 use craft\services\SystemMessages;
 use craft\services\UserPermissions;
@@ -27,6 +36,7 @@ use craft\services\Utilities;
 use craft\utilities\ClearCaches;
 use craft\utilities\SystemMessages as SystemMessagesUtility;
 use craft\web\UrlManager;
+use craft\web\View;
 use craft\web\twig\variables\CraftVariable;
 use yii\base\Event;
 use yii\mail\BaseMailer;
@@ -41,7 +51,7 @@ class Emails extends Plugin
     /**
      * @inheritdoc
      */
-    public $schemaVersion = '1.0.0';
+    public $schemaVersion = '1.1.0';
 
     /**
      * @inheritdoc
@@ -66,16 +76,19 @@ class Emails extends Plugin
             'emailSources' => EmailSourceService::class,
             'emailShots' => EmailShotsService::class,
             'mailchimp' => MailchimpService::class,
+            'attachements' => AttachementsService::class,
         ]);
 
+        $this->registerMailer();
         $this->registerProjectConfig();
         $this->registerSystemMessages();
         $this->disableSystemMessages();
-        $this->registerEmailEvents();
         $this->registerTwigVariables();
         $this->registerPermissions();
         $this->registerEmailSources();
         $this->registerClearCacheEvent();
+        $this->registerSiteTemplates();
+        $this->registerSiteChange();
 
         if (Craft::$app->request->getIsConsoleRequest()) {
             $this->controllerNamespace = 'Ryssbowh\\CraftEmails\\console';
@@ -92,7 +105,7 @@ class Emails extends Plugin
     public function registerTwigVariables()
     {
         Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $e) {
-            $e->sender->set('emails', Emails::$plugin->emails);
+            $e->sender->set('emails', EmailsVariable::class);
         });
     }
 
@@ -119,6 +132,53 @@ class Emails extends Plugin
             return $item;
         }
         return null;
+    }
+
+    /**
+     * Listen to site after save event, in case their language change
+     */
+    protected function registerSiteChange()
+    {
+        Event::on(
+            Site::class,
+            Site::EVENT_BEFORE_UPDATE,
+            function (Event $e) {
+                if (!$e->sender->primary) {
+                    return;
+                }
+                $oldLanguage = $e->sender->getOldAttribute('language');
+                $newLanguage = $e->sender->language;
+                if ($oldLanguage !== $newLanguage) {
+                    Emails::$plugin->emails->updatePrimaryMessageLanguage($oldLanguage, $newLanguage);
+                }
+            }
+        );
+    }
+
+    /**
+     * Replace Craft mailer
+     */
+    protected function registerMailer()
+    {
+        $config = App::mailerConfig();
+        $config['class'] = EmailerService::class;
+        \Craft::$app->setComponents([
+            'mailer' => \Craft::createObject($config)
+        ]);
+    }
+
+    /**
+     * Registers front templates
+     */
+    protected function registerSiteTemplates()
+    {
+        Event::on(
+            View::class, 
+            View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
+            function (RegisterTemplateRootsEvent $event) {
+                $event->roots[''][] = __DIR__ . '/templates/site';
+            }
+        );
     }
 
     /**
@@ -183,19 +243,6 @@ class Emails extends Plugin
     }
 
     /**
-     * Events before and after an email is sent
-     */
-    protected function registerEmailEvents()
-    {
-        Event::on(Mailer::class, Mailer::EVENT_BEFORE_PREP, function (Event $event) {
-            Emails::$plugin->emails->modifyMessage($event->message);
-        });
-        Event::on(BaseMailer::class, BaseMailer::EVENT_AFTER_SEND, function ($event) {
-            Emails::$plugin->emails->afterSent($event->message);
-        });
-    }
-
-    /**
      * Disable Craft system messages
      */
     protected function disableSystemMessages()
@@ -233,10 +280,10 @@ class Emails extends Plugin
                         'label' => \Craft::t('emails', 'Modify emails config')
                     ],
                     'seeEmailLogs' => [
-                        'label' => \Craft::t('emails', 'See emails logs')
+                        'label' => \Craft::t('emails', 'See logs')
                     ],
                     'deleteEmailLogs' => [
-                        'label' => \Craft::t('emails', 'Delete emails logs')
+                        'label' => \Craft::t('emails', 'Delete logs')
                     ],
                     'sendEmails' => [
                         'label' => \Craft::t('emails', 'Send emails')
@@ -255,7 +302,7 @@ class Emails extends Plugin
     protected function registerSystemMessages()
     {
         Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function(RegisterEmailMessagesEvent $event) {
-            $event->messages = Emails::$plugin->emails->replaceSystemMessages($event->messages);
+            $event->messages = Emails::$plugin->emails->getAllSystemMessages($event->messages);
         });
     }
 
@@ -283,12 +330,14 @@ class Emails extends Plugin
             $event->rules = array_merge($event->rules, [
                 'emails' => 'emails/cp-emails',
                 'emails/list' => 'emails/cp-emails',
+                'emails/preview/<id:\d+>/<langId>' => 'emails/cp-emails/preview',
                 'emails/shots' => 'emails/cp-shots',
                 'emails/shots/add' => 'emails/cp-shots/add-shot',
                 'emails/shots/edit/<id:\d>' => 'emails/cp-shots/edit-shot',
                 'emails/shots/logs/<id:\d>' => 'emails/cp-shots/logs',
                 'emails/quick-shot' => 'emails/cp-shots/quick-shot',
                 'emails/edit/<id:\d+>' => 'emails/cp-emails/edit-content',
+                'emails/edit/<id:\d+>/<langId>' => 'emails/cp-emails/edit-content',
                 'emails/logs/<emailId:\d+>' => 'emails/cp-emails/logs'
             ]);
             if (\Craft::$app->config->getGeneral()->allowAdminChanges) {
@@ -306,6 +355,7 @@ class Emails extends Plugin
     protected function afterInstall()
     {
         Emails::$plugin->emails->install();
+        \Craft::$app->plugins->enablePlugin('emails');
     }
 
     /**
@@ -314,5 +364,8 @@ class Emails extends Plugin
     protected function afterUninstall()
     {
         Craft::$app->getProjectConfig()->remove('emails');
+        \Craft::$app->getDb()->createCommand()
+            ->delete(Table::SYSTEMMESSAGES)
+            ->execute();
     }
 }

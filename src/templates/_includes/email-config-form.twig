@@ -1,0 +1,121 @@
+{% import "_includes/forms" as forms %}
+
+{{ actionInput('emails/cp-emails/save-config') }}
+{{ forms.textField({
+    label: 'Heading'|t('emails'),
+    name: 'heading',
+    value: email.heading,
+    required: true,
+    errors: errors['heading'] ?? [],
+    id: 'field-heading'
+}) }}
+{{ forms.textField({
+    label: 'Key'|t('emails'),
+    name: 'key',
+    value: email.key,
+    disabled: email.system == 1,
+    warning: (email.id and not email.system) ? 'Changing this may break emails that use this template'|t('emails') : '',
+    instructions: email.system ? 'This is a system email and its key cannot be changed'|t('emails') : '',
+    errors: errors['key'] ?? [],
+    required: true,
+    fieldClass: 'first',
+    id: 'field-key'
+}) }}
+{{ forms.textField({
+    label: 'Template'|t('emails'),
+    name: 'template',
+    value: email.template,
+    required: true,
+    errors: errors['template'] ?? []
+}) }}
+{{ forms.lightswitchField({
+    label: 'Plain text email'|t('emails'),
+    name: 'plain',
+    on: email.plain,
+    instructions: "Do not use Html for this email's body"|t('emails'),
+    id: 'lightswitch-plain'
+}) }}
+{{ forms.selectField({
+    label: 'Body Redactor config'|t('emails'),
+    instructions: 'You can save custom Redactor configs as .json files in config/redactor/'|t('emails'),
+    options: settings.redactorConfigOptions,
+    required: true,
+    errors: errors['redactorConfig'] ?? [],
+    name: 'redactorConfig',
+    id: 'redactor-config'
+}) }}
+{{ forms.textareaField({
+    label: 'Instructions'|t('emails'),
+    name: 'instructions',
+    value: email.instructions,
+    instructions: "Instructions for the user writing the email's body, displayed as a tip."|t('emails'),
+    errors: errors['instructions'] ?? []
+}) }}
+{{ forms.autosuggestField({
+    label: 'Email from'|t('emails'),
+    type: 'email',
+    name: 'from',
+    value: email.from,
+    suggestEnvVars: true,
+    placeholder: emailSettings.fromEmail,
+    errors: errors['from'] ?? []
+}) }}
+{{ forms.autosuggestField({
+    label: 'Name from'|t('emails'),
+    name: 'fromName',
+    value: email.fromName,
+    suggestEnvVars: true,
+    placeholder: emailSettings.fromName,
+    errors: errors['fromName'] ?? []
+}) }}
+{{ forms.autosuggestField({
+    label: 'Reply to email'|t('emails'),
+    type: 'email',
+    name: 'replyTo',
+    value: email.replyTo,
+    suggestEnvVars: true,
+    placeholder: emailSettings.replyToEmail ?? emailSettings.fromEmail,
+    errors: errors['replyTo'] ?? []
+}) }}
+{{ forms.autosuggestField({
+    label: 'Cc'|t('emails'),
+    name: 'cc',
+    value: email.cc,
+    suggestEnvVars: true,
+    instructions: 'Comma separated emails'|t('emails'),
+    errors: errors['cc'] ?? []
+}) }}
+{{ forms.autosuggestField({
+    label: 'Bcc'|t('emails'),
+    name: 'bcc',
+    value: email.bcc,
+    suggestEnvVars: true,
+    instructions: 'Comma separated emails'|t('emails'),
+    errors: errors['bcc'] ?? []
+}) }}
+{{ forms.lightswitchField({
+    label: 'Save logs'|t('emails'),
+    name: 'saveLogs',
+    on: email.saveLogs,
+    instructions: 'Save logs of sent emails. You will be able to resend emails if this is enabled.'|t('emails'),
+    errors: errors['saveLogs'] ?? []
+}) }}
+
+{% js on ready %}
+    function toggleRedactorField() {
+        if ($('#lightswitch-plain-field .lightswitch').hasClass('on')) {
+            $('#redactor-config-field').slideUp('fast');
+        } else {
+            $('#redactor-config-field').slideDown('fast');
+        }
+    }
+    $('#lightswitch-plain-field .lightswitch').on('change', function () {
+        toggleRedactorField();
+    });
+    if ($('#lightswitch-plain-field .lightswitch').hasClass('on')) {
+        $('#redactor-config-field').hide();
+    }
+    {% if not email.key %}
+        new Craft.HandleGenerator('#field-heading', '#field-key')
+    {% endif %}
+{% endjs %}

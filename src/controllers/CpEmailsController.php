@@ -6,9 +6,17 @@ use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\Models\Email;
 use Ryssbowh\CraftEmails\Models\EmailShot;
 use Ryssbowh\CraftEmails\assets\EmailsAssetBundle;
+use Ryssbowh\CraftEmails\assets\PreviewAssetBundle;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
+use craft\helpers\App;
+use craft\helpers\Template;
 use craft\helpers\UrlHelper;
+use craft\mail\Mailer;
+use craft\models\SystemMessage;
 use craft\web\Controller;
+use yii\base\Event;
+use yii\helpers\Markdown;
+use yii\mail\MailEvent;
 use yii\web\ForbiddenHttpException;
 
 class CpEmailsController extends Controller
@@ -41,6 +49,67 @@ class CpEmailsController extends Controller
     }
 
     /**
+     * Preview action
+     * 
+     * @param  int    $id
+     * @param  string $langId
+     * @return Reponse
+     */
+    public function actionPreview(int $id, string $langId)
+    {
+        $this->requirePermission('modifyEmailContent');
+        $email = Emails::$plugin->emails->getById($id);
+        $view = \Craft::$app->view;
+        $generalConfig = \Craft::$app->getConfig()->getGeneral();
+        // Use the posted language
+        $language = \Craft::$app->language;
+        \Craft::$app->language = $langId;
+        $message = \Craft::$app->systemMessages->getMessage($email->key, $langId);
+        Event::trigger(Mailer::class, Mailer::EVENT_BEFORE_PREP, new MailEvent([
+            'message' => $message,
+        ]));
+        // Temporarily disable lazy transform generation
+        $generateTransformsBeforePageLoad = $generalConfig->generateTransformsBeforePageLoad;
+        $generalConfig->generateTransformsBeforePageLoad = true;
+        $settings = App::mailSettings();
+        $fromEmail = $email->from ? \Craft::parseEnv($email->from) : \Craft::parseEnv($settings->fromEmail);
+        $fromName = $email->fromName ? \Craft::parseEnv($email->fromName) : \Craft::parseEnv($settings->fromName);
+        $replyToEmail = $email->replyTo ? \Craft::parseEnv($email->replyTo) : \Craft::parseEnv($settings->replyToEmail);
+        $variables = $message->variables ?? [] + [
+            'emailKey' => $email->key,
+            'fromEmail' => $fromEmail,
+            'replyToEmail' => $replyToEmail,
+            'fromName' => $fromName,
+        ];
+        $subjectError = $bodyError = '';
+        try {
+            $subject = $view->renderString($message->subject, $variables, $view::TEMPLATE_MODE_SITE);
+        } catch (\Throwable $e) {
+            $subject = $message->subject;
+            $subjectError = \Craft::t('emails', 'Unable to render the subject properly');
+        }
+        try {
+            $body = $view->renderString($message->body, $variables, $view::TEMPLATE_MODE_SITE);
+        } catch (\Throwable $e) {
+            $body = $message->body;
+            $subjectError = \Craft::t('emails', 'Unable to render the body properly');
+        }
+        $body = $view->renderTemplate($email->template, array_merge($variables, [
+            'body' => Template::raw(Markdown::process($body)),
+        ]), $view::TEMPLATE_MODE_SITE);
+        // Set things back to normal
+        \Craft::$app->language = $language;
+        $generalConfig->generateTransformsBeforePageLoad = $generateTransformsBeforePageLoad;
+        \Craft::$app->view->registerAssetBundle(PreviewAssetBundle::class);
+        return $this->renderTemplate('emails/preview', [
+            'subject' => $subject,
+            'body' => $body,
+            'subjectError' => $subjectError,
+            'bodyError' => $bodyError
+        ]);
+    }
+
+    /**
      * Add email action
      * 
      * @return Response
@@ -56,19 +125,87 @@ class CpEmailsController extends Controller
     }
 
     /**
+     * Action add translation
+     * 
+     * @return Response
+     */
+    public function actionAddTranslation()
+    {
+        $this->requirePermission('modifyEmailContent');
+        $key = $this->request->getRequiredParam('key');
+        $langId = $this->request->getRequiredParam('localeId');
+        $locale = \Craft::$app->i18n->getLocaleById($langId);
+        if (Emails::$plugin->emails->addTranslation($key, $langId)) {
+            \Craft::$app->session->setNotice(\Craft::t('emails', 'Translation for {lang} added.', ['lang' => $locale->displayName]));
+            return true;    
+        }
+        $this->response->setStatusCode(400);
+        return $this->asJson([
+            'message' => \Craft::t('emails', "Couldn't add translation")
+        ]);
+    }
+
+    /**
+     * Action delete translation
+     * 
+     * @return Response
+     */
+    public function actionDeleteTranslation()
+    {
+        $this->requirePermission('modifyEmailContent');
+        $key = $this->request->getRequiredParam('key');
+        $langId = $this->request->getRequiredParam('localeId');
+        $locale = \Craft::$app->i18n->getLocaleById($langId);
+        if (Emails::$plugin->emails->deleteTranslation($key, $langId)) {
+            \Craft::$app->session->setNotice(\Craft::t('emails', 'Translation for {lang} deleted.', ['lang' => $locale->displayName]));
+            return true;    
+        }
+        $this->response->setStatusCode(400);
+        return $this->asJson([
+            'message' => \Craft::t('emails', "Couldn't delete translation")
+        ]);
+    }
+
+    /**
      * Edit email content action
      *
      * @param  int $id
      * @return Response
      */
-    public function actionEditContent(int $id)
+    public function actionEditContent(int $id, ?string $langId = null)
     {
         $this->requirePermission('modifyEmailContent');
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
-        return $this->renderTemplate('emails/edit-content', [
-            'email' => Emails::$plugin->emails->getById($id),
-            'settings' => Emails::$plugin->settings
+        if ($langId === null) {
+            $langId = \Craft::$app->getSites()->getPrimarySite()->language;
+        }
+        $email = Emails::$plugin->emails->getById($id);
+        $message = $email->getMessage($langId);
+        return $this->editContent($message, $langId);
+    }
+
+    /**
+     * Save email content action
+     * 
+     * @return Response
+     */
+    public function actionSaveContent()
+    {
+        $this->requirePermission('modifyEmailContent');
+        $langId = $this->request->getRequiredParam('langId');
+        $attachements = $this->request->getParam('attachements', []);
+        if (is_string($attachements)) {
+            $attachements = [];
+        }
+        $message = new SystemMessage([
+            'key' => $this->request->getRequiredParam('key'),
+            'subject' => $this->request->getRequiredParam('subject'),
+            'body' => $this->request->getRequiredParam('body')
         ]);
+        if (Emails::$plugin->emails->saveMessage($message, $langId, $attachements)) {
+            \Craft::$app->session->setNotice(\Craft::t('emails', 'Content saved.'));
+            return $this->redirect(UrlHelper::cpUrl('emails'));
+        }
+        return $this->editContent($message, $langId);
     }
 
     /**
@@ -125,10 +262,10 @@ class CpEmailsController extends Controller
      */
     public function actionSaveConfig()
     {
-        $this->requirePostRequest();
+        $this->requirePermission('modifyEmailConfig');
         $new = true;
         $email = new Email;
-        if ($id = $this->request->getBodyParam('id')) {
+        if ($id = $this->request->getParam('id')) {
             $new = false;
             $email = Emails::$plugin->emails->getById($id);
         }
@@ -141,33 +278,11 @@ class CpEmailsController extends Controller
             }
             return $this->redirect(UrlHelper::cpUrl('emails'));
         }
-        $template = $new ? 'emails/add' : 'emails/edit-config';
+        $template = $new ? 'emails/add-email' : 'emails/edit-config';
         return $this->renderTemplate($template, [
             'email' => $email,
             'settings' => Emails::$plugin->settings
         ]);
-    }
-
-    /**
-     * Save email content action
-     * 
-     * @return Response
-     */
-    public function actionSaveContent()
-    {
-        $this->requirePostRequest();
-        $id = $this->request->getRequiredBodyParam('id');
-        $email = Emails::$plugin->emails->getById($id);
-        $record = Emails::$plugin->emails->getRecordById($id);
-        $configDriven = Emails::$plugin->settings->configDriven;
-        foreach ($email->safeAttributes() as $attribute) {
-            if (!in_array($attribute, $configDriven) and $this->request->getBodyParam($attribute) !== null) {
-                $record->$attribute = $this->request->getBodyParam($attribute);
-            }
-        }
-        $record->save(false);
-        \Craft::$app->session->setNotice(\Craft::t('emails', 'Email saved.'));
-        return $this->redirect(UrlHelper::cpUrl('emails'));
     }
 
     /**
@@ -237,6 +352,38 @@ class CpEmailsController extends Controller
         }
         return $this->asJson([
             'message' => $message
+        ]);
+    }
+
+    /**
+     * Edit system message
+     * 
+     * @param  SystemMessage $message
+     * @param  string        $langId
+     * @return Response
+     */
+    protected function editContent(SystemMessage $message, string $langId)
+    {
+        $email = Emails::$plugin->emails->getByKey($message->key);
+        $emailLocales = $email->allDefinedLanguages;
+        $translatableLocales = [];
+        foreach (\Craft::$app->i18n->getSiteLocales() as $locale) {
+            if (!isset($emailLocales[$locale->id])) {
+                $translatableLocales[$locale->id] = $locale->displayName;
+            }
+        }
+        asort($translatableLocales);
+        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
+        return $this->renderTemplate('emails/edit-content', [
+            'email' => $email,
+            'message' => $message,
+            'langId' => $langId,
+            'locale' => \Craft::$app->i18n->getLocaleById($langId),
+            'emailLocales' => $emailLocales,
+            'translatableLocales' => $translatableLocales,
+            'settings' => Emails::$plugin->settings,
+            'primaryLanguage' => \Craft::$app->getSites()->getPrimarySite()->language,
+            'attachements' => Emails::$plugin->attachements->get($email->key, $langId, true)
         ]);
     }
 }

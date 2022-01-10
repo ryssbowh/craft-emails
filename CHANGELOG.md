@@ -1,5 +1,22 @@
 # ryssbowh/craft-emails Changelog
 
+## 1.1.0 - 09/01/2022
+
+### Fixed
+- Plugin would show up as disabled after install
+
+### Changed
+- Mailchimp caching can be set to -1 to skip caching
+- Email log stored in filesystem instead of database
+- Replace mailer with custom one
+- Removed config driven attributes
+
+### Added
+- Email translations
+- Email templates
+- Email preview
+- Translatable attachements
+
 ## 1.0.1 - 09/01/2022
 
 ### Fixed

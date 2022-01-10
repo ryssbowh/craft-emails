@@ -151,7 +151,7 @@
             data: {id: $(this).data('id')}
         }).done(function (data) {
             var iframe = $('#content-modal iframe')[0];
-            iframe.src = "data:text/html;charset=utf-8," + data.uncompressedContent;
+            iframe.src = "data:text/html;charset=utf-8," + data.body;
             $('#content-modal .email-subject').html(data.subject);
             $('#content-modal .email-to').html(formatEmails(data.to));
             $('#content-modal .email-cc').html(formatEmails(data.cc));
