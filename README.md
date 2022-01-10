@@ -77,7 +77,7 @@ Define a new email shots using the dashboard :
 You can either save an email shot for future use, or create a quick shot that will be sent instantly.
 
 Each of them will require an email, and some emails to send to, which can come from 4 places :
-- A source : A source of emails, the default comes with a "All users" and a source for each user group. More source can be defined
+- A source : A source of emails, the default comes with Maichimp sources, a "All users" and a source for each user group. More source can be defined
 - Users : Choose users
 - Email : Enter emails
 - Mailchimp lists : Enter your api key in the settings to enable your lists. Lists will be cached for 30min by default

@@ -1,5 +1,10 @@
 # ryssbowh/craft-emails Changelog
 
+## 1.1.2
+
+### Changed
+- move messages into their own service
+
 ## 1.1.1 - 10/01/2022
 
 ### Fixed
