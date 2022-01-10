@@ -2,7 +2,6 @@
     "name": "ryssbowh/craft-emails",
     "description": "Emails",
     "type": "craft-plugin",
-    "version": "1.0.0",
     "keywords": [
         "craft",
         "cms",
