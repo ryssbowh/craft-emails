@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 1.2.1 - 2022-01-11
+
+### Fixed
+- Remove test content in default email template
+
 ## 1.2.0 - 2022-01-10
 
 ### Fixed
