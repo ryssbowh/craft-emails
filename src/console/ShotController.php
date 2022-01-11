@@ -39,8 +39,15 @@ class ShotController extends Controller
                 $this->stdout(\Craft::t('emails', 'Queue has been run.') . "\n");
             }
         } else {
-            $this->stdout(\Craft::t('emails', '{number} emails sent.', ['number' => $shot->emailCount]) . "\n");
+            list($sent, $failed) = Emails::$plugin->emailShots->lastRunResult;
+            if (sizeof($sent)) {
+                $this->stdout(\Craft::t('emails', '{number} emails sent.', ['number' => $sent]) . "\n");
+            }
+            if (sizeof($failed)) {
+                $this->stderr(\Craft::t('emails', '{number} emails failed to send.', ['number' => sizeof($failed)]) . "\n");
+            }
         }
+
         return ExitCode::OK;
     }
 

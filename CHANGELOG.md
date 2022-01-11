@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 1.2.3 - 2022-01-11
+
+### Fixed
+- Better error handling when sending shot through command line
+
 ## 1.2.2 - 2022-01-11
 
 ### Fixed
