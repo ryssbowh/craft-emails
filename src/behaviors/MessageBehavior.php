@@ -36,7 +36,7 @@ class MessageBehavior extends Behavior
         return \Craft::$app->elements->parseRefs($this->owner->body);
     }
 
-    public function redactorInput(string $redactorConfig)
+    public function redactorInput(?string $redactorConfig)
     {
         \Craft::$app->view->registerAssetBundle(FieldAsset::class);
         RedactorAsset::registerTranslations(\Craft::$app->view);

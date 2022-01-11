@@ -16,10 +16,11 @@ class RedactorHelper
 {
     /**
      * Get redactor settings
-     * 
+     *
+     * @param ?string $redactorConfigFile
      * @return array
      */
-    public static function getRedactorSettings(string $redactorConfigFile): array
+    public static function getRedactorSettings(?string $redactorConfigFile): array
     {
         $redactorConfig = [];
         if ($redactorConfigFile) {

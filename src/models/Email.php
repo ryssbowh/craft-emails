@@ -19,7 +19,7 @@ class Email extends Model
     public $dateCreated;
     public $dateUpdated;
     public $template = 'emails/template';
-    public $redactorConfig;
+    public $redactorConfig = 'Default.json';
     public $system = false;
     public $plain = false;
     public $bcc;

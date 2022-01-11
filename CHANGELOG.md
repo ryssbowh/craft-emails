@@ -1,5 +1,11 @@
 # Web Puzzlers Emails Changelog
 
+## 1.2.2 - 2022-01-11
+
+### Fixed
+- Error when redactor config is not populated
+- Redactor config defaults to 'Default.json'
+
 ## 1.2.1 - 2022-01-11
 
 ### Fixed
