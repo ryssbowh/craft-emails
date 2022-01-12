@@ -1,6 +1,6 @@
 {
     "name": "ryssbowh/craft-emails",
-    "description": "Emails",
+    "description": "Take control over your emails in Craft",
     "type": "craft-plugin",
     "keywords": [
         "craft",
