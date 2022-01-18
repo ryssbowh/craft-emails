@@ -13,8 +13,10 @@ A clear and concise description of what the bug is.
 **To Reproduce**
 Steps to reproduce the behavior:
 1.
+2.
+3.
 
 **Software:**
  - Emails version:
- - Craft version
- - Email adaptor (sendgrid etc)
+ - Craft version:
+ - Email adaptor (sendgrid etc):
