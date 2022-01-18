@@ -57,7 +57,7 @@ class RedactorHelper
      * @param  string $body
      * @return string
      */
-    public function serializeBody(string $body): string
+    public static function serializeBody(string $body): string
     {
         return preg_replace_callback(
             '/(href=|src=)([\'"])([^\'"\?#]*)(\?[^\'"\?#]+)?(#[^\'"\?#]+)?(?:#|%23)([\w\\\\]+)\:(\d+)(?:@(\d+))?(\:(?:transform\:)?' . HandleValidator::$handlePattern . ')?\2/',

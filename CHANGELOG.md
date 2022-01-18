@@ -1,5 +1,11 @@
 # Web Puzzlers Emails Changelog
 
+## 1.2.4 - 2022-01-18
+
+### Fixed
+- Issue with redactor helper (php 7.4)
+- Issue with event before prep (php 7.4)
+
 ## 1.2.3 - 2022-01-11
 
 ### Fixed

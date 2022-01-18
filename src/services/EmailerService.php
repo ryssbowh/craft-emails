@@ -17,6 +17,8 @@ use yii\mail\MailEvent;
 
 class EmailerService extends Mailer
 {
+    const EVENT_BEFORE_PREP = 'beforePrep';
+
     public $parentMailer;
 
     /**
