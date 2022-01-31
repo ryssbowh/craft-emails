@@ -54,7 +54,9 @@ class EmailerService extends Mailer
             $fromName = $mail->fromName ? \Craft::parseEnv($mail->fromName) : \Craft::parseEnv($settings->fromName);
             $replyToEmail = $mail->replyTo ? \Craft::parseEnv($mail->replyTo) : \Craft::parseEnv($settings->replyToEmail);
             $message->setFrom([$fromEmail => $fromName]);
-            $message->setReplyTo($replyToEmail);
+            if ($replyToEmail) {
+                $message->setReplyTo($replyToEmail);
+            }
             if ($mail->bcc) {
                 $message->setBcc(EmailHelper::parseEmails($mail->bcc));
             }
