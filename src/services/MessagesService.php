@@ -4,28 +4,9 @@ namespace Ryssbowh\CraftEmails\services;
 
 use Craft;
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\events\EmailEvent;
-use Ryssbowh\CraftEmails\models\Email;
-use Ryssbowh\CraftEmails\models\EmailLog;
-use Ryssbowh\CraftEmails\records\Email as EmailRecord;
-use Ryssbowh\CraftEmails\records\EmailAttachement;
-use Ryssbowh\CraftEmails\records\EmailLog as EmailLogRecord;
-use Ryssbowh\CraftEmails\exceptions\EmailException;
-use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use craft\base\Component;
-use craft\db\Table;
-use craft\elements\Asset;
-use craft\events\ConfigEvent;
-use craft\events\RebuildConfigEvent;
-use craft\helpers\StringHelper;
-use craft\helpers\Template;
-use craft\mail\Message;
 use craft\models\SystemMessage;
 use craft\records\SystemMessage as SystemMessageRecord;
-use craft\web\View;
-use yii\base\Event;
-use yii\data\Pagination;
-use yii\helpers\Markdown;
 
 class MessagesService extends Component
 {
