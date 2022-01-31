@@ -54,7 +54,7 @@ class Emails extends Plugin
     /**
      * @inheritdoc
      */
-    public $schemaVersion = '1.2.0';
+    public $schemaVersion = '1.3.0';
 
     /**
      * @inheritdoc

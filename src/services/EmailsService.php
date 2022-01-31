@@ -98,6 +98,9 @@ class EmailsService extends Component
         }
         $messages = \Craft::$app->systemMessages->getAllMessages();
         foreach ($messages as $message) {
+            if ($message['key'] == 'test_email') {
+                continue;
+            }
             $email = new Email([
                 'key' => $message['key'],
                 'heading' => $message['heading'],
@@ -240,6 +243,9 @@ class EmailsService extends Component
      */
     public function delete(Email $email, bool $force = false): bool
     {
+        if ($email->system and !$force) {
+            throw EmailException::system($email->id);
+        }
         $this->triggerEvent(self::EVENT_BEFORE_DELETE, new EmailEvent([
             'email' => $email
         ]));

@@ -13,4 +13,9 @@ class EmailException extends \Exception
     {
         return new static('Email log with id '.$id.' doesn\'t exist');
     }
+
+    public static function system(int $id)
+    {
+        return new static('Email with id '.$id.' is a system email and can\'t be deleted (or use force option)');
+    }
 }

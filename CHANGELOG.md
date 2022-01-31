@@ -1,9 +1,16 @@
 # Web Puzzlers Emails Changelog
 
-## 1.2.6 - 2022-01-31
+## 1.3.0 - 2022-01-31
+
+### Removed
+- Test setting email
 
 ### Fixed
+- Ensure system emails can't be deleted
+
+### Changed
 - Require Craft 3.6.5 before which craft\mail\Mailer::EVENT_BEFORE_PREP doesn't exist
+- Exclude test settings email from creation, as it's never used by the system
 
 ## 1.2.5 - 2022-01-31
 
