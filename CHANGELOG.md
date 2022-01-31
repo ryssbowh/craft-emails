@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 1.2.6 - 2022-01-31
+
+### Fixed
+- Require Craft 3.6.5 before which craft\mail\Mailer::EVENT_BEFORE_PREP doesn't exist
+
 ## 1.2.5 - 2022-01-31
 
 ### Fixed

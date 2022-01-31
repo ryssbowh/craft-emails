@@ -150,7 +150,7 @@ To add attachements users will need "View volume" and potentially "View files up
 ## Requirements
 
 php >= 7.4  
-Craft >= 3.5  
+Craft >= 3.6.5  
 [Redactor plugin](https://plugins.craftcms.com/redactor), this is automatically installed by composer but doesn't need to be installed/enabled in the cms
 
 ## Installation
