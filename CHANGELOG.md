@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 1.2.5 - 2022-01-31
+
+### Fixed
+- Issue setting reply to email when not defined
+
 ## 1.2.4 - 2022-01-18
 
 ### Fixed
