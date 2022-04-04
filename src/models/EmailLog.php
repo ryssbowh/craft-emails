@@ -301,7 +301,7 @@ class EmailLog extends Model
     /**
      * @inheritDoc
      */
-    public function fields()
+    public function fields(): array
     {
         return ['subject', 'to', 'from', 'replyTo', 'bcc', 'cc', 'from', 'body'];
     }
@@ -313,11 +313,19 @@ class EmailLog extends Model
     {
         $array = parent::toArray($fields, $expand, $recursive);
         $array['attachements'] = [];
-        foreach ($this->attachementsElements as $asset) {
-            $array['attachements'][] = [
-                'url' => $asset->url,
-                'title' => $asset->title
-            ];
+        foreach ($this->attachements as $id) {
+            $asset = Asset::find()->id($id)->one();
+            if ($asset) {
+                $array['attachements'][] = [
+                    'url' => $asset->url,
+                    'title' => $asset->title
+                ];
+            } else {
+                $array['attachements'][] = [
+                    'deleted' => true,
+                    'title' => \Craft::t('emails', 'Asset deleted from file system')
+                ];
+            }
         }
         return $array;
     }

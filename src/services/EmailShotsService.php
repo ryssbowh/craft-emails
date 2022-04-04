@@ -202,6 +202,7 @@ class EmailShotsService extends Component
             } catch (\Throwable $e) {
                 $failed[$emailAddress] = $name;
                 \Craft::$app->errorHandler->logException($e);
+                throw $e;
             }
         }
         $this->lastRunResult = [$success, $failed];

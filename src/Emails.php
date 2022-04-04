@@ -28,6 +28,7 @@ use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\helpers\App;
+use craft\helpers\FileHelper;
 use craft\mail\Mailer;
 use craft\models\SystemMessage;
 use craft\records\Site;
@@ -54,22 +55,22 @@ class Emails extends Plugin
     /**
      * @inheritdoc
      */
-    public $schemaVersion = '1.3.0';
+    public string $schemaVersion = '1.3.0';
 
     /**
      * @inheritdoc
      */
-    public $hasCpSection = true;
+    public bool $hasCpSection = true;
 
     /**
      * @inheritdoc
      */
-    public $hasCpSettings = true;
+    public bool $hasCpSettings = true;
 
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
         self::$plugin = $this;
@@ -95,10 +96,6 @@ class Emails extends Plugin
         $this->registerSiteChange();
         $this->registerBehaviors();
 
-        if (Craft::$app->request->getIsConsoleRequest()) {
-            $this->controllerNamespace = 'Ryssbowh\\CraftEmails\\console';
-        }
-
         if (Craft::$app->request->getIsCpRequest()) {
             $this->registerCpRoutes();
         }
@@ -117,7 +114,7 @@ class Emails extends Plugin
     /**
      * @inheritdoc
      */
-    public function getCpNavItem ()
+    public function getCpNavItem(): ?array
     {
         if (\Craft::$app->user->checkPermission('accessPlugin-emails')) {
             $item = parent::getCpNavItem();
@@ -370,7 +367,7 @@ class Emails extends Plugin
     /**
      * After theme is installed, creates system emails.
      */
-    protected function afterInstall()
+    protected function afterInstall(): void
     {
         Event::on(
             Plugins::class,
@@ -384,7 +381,7 @@ class Emails extends Plugin
     /**
      * Remove all config after uninstall
      */
-    protected function afterUninstall()
+    protected function afterUninstall(): void
     {
         Craft::$app->getProjectConfig()->remove('emails');
         \Craft::$app->getDb()->createCommand()

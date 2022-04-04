@@ -139,7 +139,7 @@ class RedactorHelper
      */
     protected static function _getTransforms(): array
     {
-        $allTransforms = \Craft::$app->getAssetTransforms()->getAllTransforms();
+        $allTransforms = \Craft::$app->getImageTransforms()->getAllTransforms();
         $transformList = [];
 
         foreach ($allTransforms as $transform) {

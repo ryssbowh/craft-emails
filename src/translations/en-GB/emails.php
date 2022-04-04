@@ -15,6 +15,7 @@ return [
 	"Are you sure you want to delete this translation?" => "Are you sure you want to delete this translation?",
 	"Are you sure you want to resend this email now?" => "Are you sure you want to resend this email now?",
 	"Are you sure you want to send this email shot now?" => "Are you sure you want to send this email shot now?",
+	"Asset deleted from file system" => "Asset deleted from file system",
 	"Attachements" => "Attachements",
 	"Back" => "Back",
 	"Bcc" => "Bcc",

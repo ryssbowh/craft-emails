@@ -12,7 +12,7 @@ class EmailShotJob extends BaseJob
     /**
      * @inheritdoc
      */
-    public function execute($queue)
+    public function execute($queue): void
     {
         Emails::$plugin->emailShots->sendNow($this->shot);
     }

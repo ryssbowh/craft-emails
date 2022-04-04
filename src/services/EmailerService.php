@@ -24,7 +24,7 @@ class EmailerService extends Mailer
     /**
      * @inheritdoc
      */
-    public function send($message)
+    public function send($message): bool
     {
         // fire a beforePrep event
         $this->trigger(self::EVENT_BEFORE_PREP, new MailEvent([
@@ -58,16 +58,21 @@ class EmailerService extends Mailer
                 $message->setReplyTo($replyToEmail);
             }
             if ($mail->bcc) {
-                $message->setBcc(EmailHelper::parseEmails($mail->bcc));
+                $oldBcc = $message->getBcc();
+                $oldBcc = $oldBcc ? (is_array($oldBcc) ? $oldBcc : [$oldBcc => '']) : [];
+                $bcc = array_merge($oldBcc, EmailHelper::parseEmails($mail->bcc));
+                $message->setBcc($bcc);
             }
             if ($mail->cc) {
-                $message->setCc(EmailHelper::parseEmails($mail->cc));
+                $oldCc = $message->getCc();
+                $oldCc = $oldCc ? (is_array($oldCc) ? $oldCc : [$oldCc => '']) : [];
+                $cc = array_merge($oldCc, EmailHelper::parseEmails($mail->cc));
+                $message->setCc($cc);
             }
             $attachements = Emails::$plugin->attachements->get($message->key, $message->language, true);
             foreach ($attachements as $asset) {
-                $fullPath = \Craft::getAlias($asset->volume->path) . '/' . $asset->path;
-                $message->attach($fullPath, [
-                    'fileName' => $asset->title
+                $message->attachContent($asset->getContents(), [
+                    'fileName' => $asset->filename
                 ]);
             }
 
@@ -150,9 +155,8 @@ class EmailerService extends Mailer
         $message->setHtmlBody($htmlBody);
         if ($attachements) {
             foreach (Asset::find()->id($attachements)->all() as $asset) {
-                $fullPath = \Craft::getAlias($asset->volume->path) . '/' . $asset->path;
-                $message->attach($fullPath, [
-                    'fileName' => $asset->title
+                $message->attachContent($asset->getContents(), [
+                    'fileName' => $asset->filename
                 ]);
             }
         }
@@ -178,18 +182,9 @@ class EmailerService extends Mailer
                 $record->save(false);
                 if ($record->saveLogs) {
                     if ($mail->plain) {
-                        $body = $message->getSwiftMessage()->getBody();
+                        $body = $message->getBody();
                     } else {
-                        $children = $message->getSwiftMessage()->getChildren();
-                        foreach ($children as $child) {
-                            if (get_class($child) != 'Swift_MimePart') {
-                                continue;
-                            }
-                            if ($child->getHeaders()->get('content-type')->getValue() == 'text/html') {
-                                $body = $child->getBody();
-                                break;
-                            }
-                        }
+                        $body = $message->getHtmlBody();
                     }
                     if ($attachements === null) {
                         $attachements = Emails::$plugin->attachements->get($message->key, $message->language);
@@ -199,8 +194,8 @@ class EmailerService extends Mailer
                         'email_id' => $record->id,
                         'subject' => $message->getSubject(),
                         'to' => (array) $message->getTo(),
-                        'bcc' => (array) $message->getBcc(),
-                        'cc' => (array) $message->getCc(),
+                        'bcc' => $message->getBcc() ? (array) $message->getBcc() : [],
+                        'cc' => $message->getCc() ? (array) $message->getCc() : [],
                         'from' => $message->getFrom(),
                         'attachements' => $attachements,
                         'replyTo' => $message->getReplyTo(),

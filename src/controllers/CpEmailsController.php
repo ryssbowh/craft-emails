@@ -25,7 +25,7 @@ class CpEmailsController extends Controller
     /**
      * All actions require permission 'accessPlugin-emails'
      */
-    public function beforeAction($action)
+    public function beforeAction($action): bool
     {
         $this->requirePermission('accessPlugin-emails');
         return true;

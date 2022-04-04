@@ -6,7 +6,7 @@
 {% set tabs = {} %}
 {% set title = 'Edit Email Content'|t('emails') %}
 {% set fullPageForm = true %}
-{% set emailSettings = craft.app.systemSettings.getSettings('email') %}
+{% set emailSettings = craft.app.projectConfig.get('email') %}
 {% set id = 'field-attachements' %}
 {% set name = 'attachements' %}
 {% set selectedTab = langId %}

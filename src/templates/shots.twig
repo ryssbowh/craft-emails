@@ -62,7 +62,7 @@
                                     <div>
                                         <a href="#" class="js-view btn btn-small" data-id="{{ shot.id }}">{{ 'View emails'|t('emails') }}</a>
                                         {% if shot.email and currentUser.can('sendEmails') %}
-                                            <button class="btn btn-small js-send" data-id="{{ shot.id }}">{{ 'Send now'|t('emails') }}<div class="spinner"></div></button>
+                                            <button class="btn btn-small js-send" data-id="{{ shot.id }}">{{ 'Send now'|t('emails') }} <div class="spinner small"></div></button>
                                         {% endif %}
                                     </div>
                                     <div>

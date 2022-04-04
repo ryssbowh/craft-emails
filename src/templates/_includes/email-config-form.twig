@@ -1,5 +1,7 @@
 {% import "_includes/forms" as forms %}
 
+{% set emailSettings = craft.app.projectConfig.get('email') %}
+
 {{ actionInput('emails/cp-emails/save-config') }}
 {{ forms.textField({
     label: 'Heading'|t('emails'),

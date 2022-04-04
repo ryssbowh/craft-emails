@@ -72,7 +72,7 @@
                             <td>
                                 <a href="#" class="btn btn-small js-view" data-id="{{ log.id }}">{{ 'View more'|t('emails') }}</a>
                                 {% if currentUser.can('sendEmails') %}
-                                    <a href="#" class="btn btn-small js-resend" data-id="{{ log.id }}">{{ 'Resend'|t('emails') }}<div class="spinner"></div></a>
+                                    <a href="#" class="btn btn-small js-resend" data-id="{{ log.id }}">{{ 'Resend'|t('emails') }}<div class="spinner small"></div></a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -160,7 +160,11 @@
             $('#content-modal .email-replyto').html(formatEmails(data.replyTo));
             var html = '';
             for (var i in data.attachements) {
-                html += '<div><a target="_blank" href="' + data.attachements[i].url + '">' + data.attachements[i].title + '</a></div>';
+                if (data.attachements[i].deleted) {
+                    html += '<i>' + data.attachements[i].title + '</i>';    
+                } else {
+                    html += '<div><a target="_blank" href="' + data.attachements[i].url + '">' + data.attachements[i].title + '</a></div>';
+                }
             }
             $('#content-modal .email-attachements').html(html);
             modal.show();
