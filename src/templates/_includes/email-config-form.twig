@@ -9,7 +9,8 @@
     value: email.heading,
     required: true,
     errors: errors['heading'] ?? [],
-    id: 'field-heading'
+    id: 'field-heading',
+    maxlength: 255
 }) }}
 {{ forms.textField({
     label: 'Key'|t('emails'),
@@ -21,14 +22,16 @@
     errors: errors['key'] ?? [],
     required: true,
     fieldClass: 'first',
-    id: 'field-key'
+    id: 'field-key',
+    maxlength: 255
 }) }}
 {{ forms.textField({
     label: 'Template'|t('emails'),
     name: 'template',
     value: email.template,
     required: true,
-    errors: errors['template'] ?? []
+    errors: errors['template'] ?? [],
+    maxlength: 255
 }) }}
 {{ forms.lightswitchField({
     label: 'Plain text email'|t('emails'),
@@ -51,7 +54,8 @@
     name: 'instructions',
     value: email.instructions,
     instructions: "Instructions for the user writing the email's body, displayed as a tip."|t('emails'),
-    errors: errors['instructions'] ?? []
+    errors: errors['instructions'] ?? [],
+    maxlength: 500
 }) }}
 {{ forms.autosuggestField({
     label: 'Email from'|t('emails'),
@@ -60,7 +64,8 @@
     value: email.from,
     suggestEnvVars: true,
     placeholder: emailSettings.fromEmail,
-    errors: errors['from'] ?? []
+    errors: errors['from'] ?? [],
+    maxlength: 255
 }) }}
 {{ forms.autosuggestField({
     label: 'Name from'|t('emails'),
@@ -68,7 +73,8 @@
     value: email.fromName,
     suggestEnvVars: true,
     placeholder: emailSettings.fromName,
-    errors: errors['fromName'] ?? []
+    errors: errors['fromName'] ?? [],
+    maxlength: 255
 }) }}
 {{ forms.autosuggestField({
     label: 'Reply to email'|t('emails'),
@@ -77,7 +83,8 @@
     value: email.replyTo,
     suggestEnvVars: true,
     placeholder: emailSettings.replyToEmail ?? emailSettings.fromEmail,
-    errors: errors['replyTo'] ?? []
+    errors: errors['replyTo'] ?? [],
+    maxlength: 255
 }) }}
 {{ forms.autosuggestField({
     label: 'Cc'|t('emails'),
@@ -85,7 +92,8 @@
     value: email.cc,
     suggestEnvVars: true,
     instructions: 'Comma separated emails'|t('emails'),
-    errors: errors['cc'] ?? []
+    errors: errors['cc'] ?? [],
+    maxlength: 255
 }) }}
 {{ forms.autosuggestField({
     label: 'Bcc'|t('emails'),
@@ -93,7 +101,8 @@
     value: email.bcc,
     suggestEnvVars: true,
     instructions: 'Comma separated emails'|t('emails'),
-    errors: errors['bcc'] ?? []
+    errors: errors['bcc'] ?? [],
+    maxlength: 255
 }) }}
 {{ forms.lightswitchField({
     label: 'Save logs'|t('emails'),

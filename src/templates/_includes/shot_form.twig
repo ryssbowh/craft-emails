@@ -26,7 +26,8 @@
                 errors: errors['name'] ?? [],
                 value: shot.name,
                 fieldClass: 'half',
-                id: 'field-name'
+                id: 'field-name',
+                maxlength: 255
             })
         }}
         {{
@@ -36,7 +37,8 @@
                 errors: errors['handle'] ?? [],
                 value: shot.handle,
                 fieldClass: 'half',
-                id: 'field-handle'
+                id: 'field-handle',
+                maxlength: 255
             })
         }}
     </div>
