@@ -1,5 +1,15 @@
 # Web Puzzlers Emails Changelog
 
+## 2.0.0 - unreleased
+
+### Changed
+- Craft 4 support
+- Instructions field changed from text to varchar(500)
+
+### Fixed
+- Enforce maxlength on all varchar fields
+- Fixed issues showing wrong users triggering email shots through console in logs
+
 ## 1.3.0 - 2022-01-31
 
 ### Removed

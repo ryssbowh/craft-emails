@@ -138,7 +138,7 @@ class CpShotsController extends Controller
     {
         $id = $this->request->getRequiredParam('id');
         $shot = Emails::$plugin->emailShots->getById($id);
-        Emails::$plugin->emailShots->send($shot);
+        Emails::$plugin->emailShots->send($shot, null, \Craft::$app->getUser()->getIdentity());
         $error = $message = '';
         if ($shot->useQueue) {
             $message = \Craft::t('emails', '{number} emails have been sent to the queue.', ['number' => $shot->emailCount]);

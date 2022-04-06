@@ -4,13 +4,14 @@ namespace Ryssbowh\CraftEmails\services;
 
 use Ryssbowh\CraftEmails\events\EmailShotEvent;
 use Ryssbowh\CraftEmails\events\SendEmailShotEvent;
+use Ryssbowh\CraftEmails\exceptions\EmailShotException;
+use Ryssbowh\CraftEmails\jobs\EmailShotJob;
 use Ryssbowh\CraftEmails\models\EmailShot;
 use Ryssbowh\CraftEmails\models\EmailShotLog;
 use Ryssbowh\CraftEmails\records\EmailShot as EmailShotRecord;
 use Ryssbowh\CraftEmails\records\EmailShotLog as EmailShotLogRecord;
-use Ryssbowh\CraftEmails\exceptions\EmailShotException;
-use Ryssbowh\CraftEmails\jobs\EmailShotJob;
 use craft\base\Component;
+use craft\elements\User;
 use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 use yii\base\Event;
@@ -158,16 +159,19 @@ class EmailShotsService extends Component
      * @param $forceQueue Override the email shot useQueue parameter
      * @return bool
      */
-    public function send(EmailShot $shot, ?bool $forceQueue = null): bool
+    public function send(EmailShot $shot, ?bool $forceQueue = null, ?User $user = null): bool
     {
         $useQueue = $forceQueue ?? $shot->useQueue;
+        $isConsole = \Craft::$app->request->isConsoleRequest;
         if ($useQueue) {
             Queue::push(new EmailShotJob([
-                'shot' => $shot
+                'shot' => $shot,
+                'userId' => $user ? $user->id : null,
+                'isConsole' => $isConsole
             ]));
             return true;
         }
-        return $this->sendNow($shot);
+        return $this->sendNow($shot, $user, $isConsole);
     }
 
     /**
@@ -175,7 +179,7 @@ class EmailShotsService extends Component
      *
      * @return bool
      */
-    public function sendNow(EmailShot $shot): bool
+    public function sendNow(EmailShot $shot, ?User $user = null, ?bool $isConsole = null): bool
     {
         $event = new SendEmailShotEvent([
             'shot' => $shot
@@ -207,7 +211,8 @@ class EmailShotsService extends Component
         }
         $this->lastRunResult = [$success, $failed];
         $event->result = $this->lastRunResult;
-        $this->afterSend($shot, $success);
+        $isConsole = $isConsole ?? \Craft::$app->request->isConsoleRequest;
+        $this->afterSend($shot, $success, $user, $isConsole);
         $this->triggerEvent(self::EVENT_AFTER_SEND, $event);
         return true;
     }
@@ -292,7 +297,7 @@ class EmailShotsService extends Component
      * @param  EmailShot $shot
      * @param  array     $emails
      */
-    protected function afterSend(EmailShot $shot, array $emails)
+    protected function afterSend(EmailShot $shot, array $emails, ?User $user = null, bool $isConsole = false)
     {
         if ($shot->id) {
             $record = $this->getRecordById($shot->id);
@@ -300,12 +305,11 @@ class EmailShotsService extends Component
             $record->save(false);
         }
         if ($shot->saveLogs) {
-            $user = \Craft::$app->getUser()->getIdentity();
             $log = new EmailShotLogRecord([
                 'emails' => $emails,
                 'shot_id' => $shot->id ? $shot->id : null,
                 'user_id' => $user ? $user->id : null,
-                'is_console' => \Craft::$app->request->isConsoleRequest
+                'is_console' => $isConsole
             ]);
             $log->save(false);
         }
