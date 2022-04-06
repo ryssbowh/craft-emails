@@ -31,7 +31,7 @@ class EmailerService extends Mailer
             'message' => $message,
         ]));
 
-        $mail = Emails::$plugin->emails->getByKey($message->key);
+        $mail = $message->key ? Emails::$plugin->emails->getByKey($message->key) : null;
         $generalConfig = Craft::$app->getConfig()->getGeneral();
         $settings = App::mailSettings();
         $view = Craft::$app->getView();

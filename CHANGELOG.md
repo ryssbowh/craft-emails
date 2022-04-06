@@ -9,6 +9,7 @@
 ### Fixed
 - Enforce maxlength on all varchar fields
 - Fixed issues showing wrong users triggering email shots through console in logs
+- Issue in emailer when sending a message without key
 
 ## 1.3.0 - 2022-01-31
 
