@@ -197,8 +197,12 @@ class EmailShotsService extends Component
             try {
                 $email->setTo([
                     $emailAddress => $name
-                ])->send();
-                $success[$emailAddress] = $name;
+                ]);
+                if ($email->send()) {
+                    $success[$emailAddress] = $name;
+                } else {
+                    $failed[$emailAddress] = $name;    
+                }
             } catch (\Throwable $e) {
                 $failed[$emailAddress] = $name;
                 \Craft::$app->errorHandler->logException($e);

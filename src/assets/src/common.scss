@@ -1,0 +1,72 @@
+#toolbar {
+    justify-content: end;
+}
+
+.btn-small {
+    height: 25px;
+    padding:  7px;
+}
+
+.spinner {
+    display: none;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.align-base {
+    align-items: baseline;
+}
+
+.modal {
+    z-index: 102;
+}
+
+.menu {
+    z-index:  104;
+}
+
+#emails-modal {
+    max-width:  100px;
+    iframe {
+        border: 1px solid lightgray;
+    }
+    .main .heading span {
+       color: #596673;
+        font-size: 11px;
+        font-weight: bold;
+    }
+    .body {
+       overflow-y: auto;
+       &.has-sidebar {
+        padding: 0 24px;
+       }
+    }
+    .content {
+        height: 100%
+    }
+    &.no-header {
+        .main {
+            margin: 0;
+        }
+    }
+}
+
+.actions-cell {
+    .icon {
+        margin-right: 7px;
+        &:before {
+            margin-top: -3px;
+        }
+        &.logs {
+            &:before {
+                content: 'circlerarr';
+                color: rgba(123, 135, 147, 0.5);
+            }
+            &:hover:before {
+                color: initial;    
+            }
+        }
+    }
+}

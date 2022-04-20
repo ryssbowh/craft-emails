@@ -1,5 +1,8 @@
-Craft.EmailPreview = Garnish.Base.extend({
+import { handleError } from './helpers';
+import './common.scss';
+import './content.scss';
 
+Craft.EmailPreview = Garnish.Base.extend({
     emailId: null,
     langId: null,
     isActive: false,
@@ -83,9 +86,8 @@ Craft.EmailPreview = Garnish.Base.extend({
             this.$iframeContainer = $('<div/>', {'class': 'lp-iframe-container'}).appendTo(this.$previewContainer);
 
             this.addListener($closeBtn, 'click', 'close');
-            let _this = this;
-            this.addListener($refreshBtn, 'click', function () {
-                _this.updateIframe();
+            this.addListener($refreshBtn, 'click', () => {
+                this.updateIframe();
             });
         }
 
@@ -173,9 +175,9 @@ Craft.EmailPreview = Garnish.Base.extend({
                 </div>'
             );
             $results.append('<label>' + Craft.t('emails', 'Body') +'</label>');
-            $iframeWrapper = $('<div class="iframe-wrapper">');
+            let $iframeWrapper = $('<div class="iframe-wrapper">');
             $results.append($iframeWrapper);
-            var $iframe = $('<iframe/>', {
+            let $iframe = $('<iframe/>', {
                 frameborder: 0
             });
             $iframeWrapper.append($iframe);
@@ -184,6 +186,7 @@ Craft.EmailPreview = Garnish.Base.extend({
             $iframe[0].contentWindow.document.write(data.data.body);
             $iframe[0].contentWindow.document.close();
         }).catch((error) => {
+            console.log(error);
             let message = error.response.data.error;
             this.$iframeContainer.append('<div class="error-banner">Error while fetching preview : ' + message);
         });
@@ -212,4 +215,71 @@ Craft.EmailPreview = Garnish.Base.extend({
 
         this.isVisible = true;
     },
+});
+
+Craft.EmailContent = Garnish.Base.extend({
+    jsSettings: null,
+    livePreview: null,
+    langId: null,
+    email: null,
+
+    init: function (settings) {
+        this.langId = settings.langId;
+        this.jsSettings = settings.jsSettings;
+        this.email = settings.email;
+        this.initLivePreview();
+        this.initAddTranslation();
+        this.initDelete();
+        new Craft.AssetSelectInput(this.jsSettings);
+    },
+
+    initLivePreview: function () {
+        this.livePreview = new Craft.EmailPreview({
+            langId: this.langId,
+            emailId: this.email.id
+        });
+        $('.js-preview').click(() => {
+            this.livePreview.open();
+        });
+    },
+
+    initAddTranslation: function () {
+        $('.js-add-translation').click(function(e) {
+            e.preventDefault();
+            let href = $(this).attr('href');
+            $.ajax({
+                url: Craft.getActionUrl('emails/cp-emails/add-translation'),
+                data: {
+                    localeId: $(this).data('locale'),
+                    key: this.email.key
+                },
+                dataType: 'json'
+            }).fail(function (data) {
+                handleError(data);
+            }).done(function (data){
+                window.location.href = href;
+            })
+        });
+    },
+
+    initDelete: function () {
+        $('.js-delete').click(e => {
+            e.preventDefault();
+            if (confirm(Craft.t('emails', 'Are you sure you want to delete this translation?'))) {
+                let href = $(e.target).attr('href');
+                $.ajax({
+                    url: Craft.getActionUrl('emails/cp-emails/delete-translation'),
+                    data: {
+                        localeId: $(e.target).data('locale'),
+                        key: this.email.key
+                    },
+                    dataType: 'json'
+                }).fail(function (data) {
+                    handleError(data);
+                }).done(function (data){
+                    window.location.href = href;
+                })
+            }
+        });
+    }
 });

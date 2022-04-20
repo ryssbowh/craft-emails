@@ -3,11 +3,9 @@
 namespace Ryssbowh\CraftEmails\controllers;
 
 use Ryssbowh\CraftEmails\Emails;
+use Ryssbowh\CraftEmails\helpers\RedactorHelper;
 use Ryssbowh\CraftEmails\models\Email;
 use Ryssbowh\CraftEmails\models\EmailShot;
-use Ryssbowh\CraftEmails\assets\EmailsAssetBundle;
-use Ryssbowh\CraftEmails\assets\PreviewAssetBundle;
-use Ryssbowh\CraftEmails\helpers\RedactorHelper;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
 use craft\helpers\App;
 use craft\helpers\Template;
@@ -38,7 +36,6 @@ class CpEmailsController extends Controller
      */
     public function actionIndex()
     {
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         $allow = \Craft::$app->config->general->allowAdminChanges;
         return $this->renderTemplate('emails/emails', [
             'title' => \Craft::t('emails', 'Emails'),
@@ -118,7 +115,6 @@ class CpEmailsController extends Controller
     public function actionAdd()
     {
         $this->requirePermission('addDeleteEmailTemplates');
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         return $this->renderTemplate('emails/add-email', [
             'email' => new Email,
             'settings' => Emails::$plugin->settings
@@ -175,7 +171,6 @@ class CpEmailsController extends Controller
      */
     public function actionEditContent(int $id, ?string $langId = null)
     {
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         if ($langId === null) {
             $langId = \Craft::$app->getSites()->getPrimarySite()->language;
         }
@@ -206,7 +201,7 @@ class CpEmailsController extends Controller
             'body' => $email->plain ? $body : RedactorHelper::serializeBody($body)
         ]);
         if (Emails::$plugin->messages->saveMessage($message, $langId, $attachements)) {
-            \Craft::$app->session->setNotice(\Craft::t('emails', 'Content saved.'));
+            \Craft::$app->session->setNotice(\Craft::t('emails', 'Content saved'));
             return $this->redirect(UrlHelper::cpUrl('emails'));
         }
         return $this->editContent($message, $langId);
@@ -221,7 +216,6 @@ class CpEmailsController extends Controller
     public function actionEditConfig(int $id)
     {
         $this->requirePermission('modifyEmailConfig');
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         return $this->renderTemplate('emails/edit-config', [
             'email' => Emails::$plugin->emails->getById($id),
             'settings' => Emails::$plugin->settings
@@ -312,7 +306,6 @@ class CpEmailsController extends Controller
      */
     public function actionLogs(int $emailId)
     {
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         $this->requirePermission('seeEmailLogs');
         $email = Emails::$plugin->emails->getById($emailId);
         $orderSide = $this->request->getParam('orderSide', 'desc');
@@ -368,7 +361,6 @@ class CpEmailsController extends Controller
      */
     protected function editContent(SystemMessage $message, string $langId)
     {
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         $email = Emails::$plugin->emails->getByKey($message->key);
         $emailLocales = $email->allDefinedLanguages;
         $translatableLocales = [];

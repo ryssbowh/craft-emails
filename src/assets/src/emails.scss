@@ -1,0 +1,18 @@
+.warning-banner {
+    padding: 5px 0;
+    background: #fc7703;
+    text-align: center;
+}
+.error-banner {
+    padding: 5px 0;
+    background: #fc3903;
+    text-align: center;
+}
+
+#main .redactor-box.redactor-box-fullscreen {
+    z-index: 101 !important;
+}
+
+.slideout-container, .slideout-shade {
+    z-index: 103;   
+}

@@ -130,24 +130,9 @@
     }) }}
 {% endif %}
 
-{% js %}
-    new Craft.BaseElementSelectInput({{ jsSettings|json_encode|raw }});
-    $(document).on('click', '.email-element .delete', function(e){
-        $(this).parent().slideUp('fast', function () {
-            $(this).remove();
-        });
-    });
-    $('.js-add-email').click(function () {
-        var elem = $('<div class="email-element flex flex-nowrap"><input name="emails[]" type="email" class="text" placeholder="{{ "Email"|t("emails") }}"><input name="names[]" type="text" class="text" placeholder="{{ "Name"|t("emails") }}"><button type="button" class="delete icon" title="Remove" aria-label="Remove"></button></div>');
-        elem.hide();
-        $('#field-emails .elements').append(elem);
-        elem.slideDown('fast');
-        elem.find('input').first().focus();
-    });
+{% js on ready %}
+    new Craft.EmailEditShot({
+        isAdding: {{ mode == 'create' ? 'true' : 'false' }},
+        jsSettings: {{ jsSettings|json_encode|raw }}
+    })
 {% endjs %}
-
-{% if mode == 'create' and not shot.handle %}
-    {% js %}
-        new Craft.HandleGenerator('#field-name', '#field-handle')
-    {% endjs %}
-{% endif %}

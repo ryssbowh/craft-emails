@@ -1,4 +1,5 @@
 {% extends "_layouts/cp" %}
+{% do view.registerAssetBundle('Ryssbowh\\CraftEmails\\assets\\LogsAssetBundle') %}
 
 {% set selectedTab = 'logs' %}
 {% set selectedSubnavItem = 'shots' %}
@@ -14,7 +15,7 @@
 {% if currentUser.can('deleteEmailLogs') and shot.saveLogs %}
     {% set tabs = tabs|merge({
         'logs': {
-           selected: selectedTab == 'logs',
+            selected: selectedTab == 'logs',
             url: url("emails/shots/logs/" ~ shot.id),
             label: "Logs"|t('emails')
         }
@@ -110,37 +111,12 @@
             </div>
         </div>
     </div>
-    {% include "emails/_includes/js-errors" %}
-    {% include "emails/_includes/js-logs" with {deleteAction: 'emails/cp-shots/delete-logs'} %}
 {% endblock %}
 
-{% js %}
-    var modal = new Garnish.Modal($('#emails-modal'), {
-        autoShow: false
-    });
-    $('#emails-modal .js-close').click(function(){
-        modal.hide();
-    });
-    function formatEmails(emails) {
-        var html = '';
-        for (var i in emails) {
-            html += '<div><a href=mailto:' + i + '>' + i + (emails[i] ? ' (' + emails[i] + ')' : '') + '</a></div>'
-        }
-        return html;
-    }
-    $('.js-view').click(function(e){
-        e.preventDefault();
-        $.ajax({
-            url: Craft.getActionUrl('emails/cp-shots/log-emails'),
-            data: {id: $(this).data('id')}
-        }).done(function (data) {
-            if (data.emails.length == 0) {
-                $('#emails-modal .content').html('<p>{{ "No emails for this log"|t("emails") }}</p>');
-            } else {
-                $('#emails-modal .content').html(formatEmails(data.emails));
-            }
-            modal.show();
-        })
+{% js on ready %}
+    new Craft.EmailShotLogs({
+        deleteAction: 'emails/cp-shots/delete-logs',
+        viewAction: 'emails/cp-shots/log-emails'
     });
 {% endjs %}
 

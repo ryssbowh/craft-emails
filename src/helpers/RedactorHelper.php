@@ -10,7 +10,9 @@ use craft\helpers\Html;
 use craft\models\Section;
 use craft\redactor\Field as RedactorField;
 use craft\redactor\assets\redactor\RedactorAsset;
+use craft\redactor\events\ModifyRedactorConfigEvent;
 use craft\validators\HandleValidator;
+use yii\base\Event;
 
 class RedactorHelper
 {
@@ -29,6 +31,13 @@ class RedactorHelper
                 $redactorConfig = json_decode(file_get_contents($file), true);
             }
         }
+        // Give plugins a chance to modify the Redactor config
+        $event = new ModifyRedactorConfigEvent([
+            'config' => $redactorConfig
+        ]);
+        Event::trigger(RedactorField::class, RedactorField::EVENT_DEFINE_REDACTOR_CONFIG, $event);
+        $redactorConfig = $event->config;
+        
         if (isset($redactorConfig['plugins'])) {
             foreach ($redactorConfig['plugins'] as $plugin) {
                 RedactorField::registerRedactorPlugin($plugin);

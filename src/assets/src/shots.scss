@@ -1,0 +1,25 @@
+.field:first-of-type {
+    margin-top: 0;
+}
+.actions-wrapper {
+    align-items: center;
+}
+
+.field {
+    &.third {
+        width: 33.3%;
+    }
+    &.quarter {
+       width: 25%;
+    }
+    &.half {
+       width: 50%;
+    }
+}
+
+.email-element {
+    margin-top: 7px;
+    &:first-child {
+        margin-top: 12px;    
+    }
+}

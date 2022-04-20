@@ -2,13 +2,13 @@
 
 namespace Ryssbowh\CraftEmails\assets;
 
-class EmailsAssetBundle extends BaseAssetBundle
+class ShotsAssetBundle extends BaseAssetBundle
 {
     public $js = [
-        'emails.js'
+        'shots.js'
     ];
 
     public $css = [
-        'emails.css'
+        'shots.css'
     ];
 }

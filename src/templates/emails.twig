@@ -1,4 +1,5 @@
 {% extends "_layouts/cp" %}
+{% do view.registerAssetBundle('Ryssbowh\\CraftEmails\\assets\\EmailsAssetBundle') %}
 
 {% block toolbar %}
     {% if canAddDelete %}
@@ -51,26 +52,8 @@
     {% else %}
         <p>{{ 'No emails found'|t('emails') }}</p>
     {% endif %}
-    {% include "emails/_includes/js-errors" %}
 {% endblock %}
 
-{% js %}
-    $('.delete.email').click(function(){
-        let line = $(this).parent().parent();
-        if (confirm('Do you want to delete email ?')) {
-            $.ajax({
-                url: Craft.getActionUrl('emails/cp-emails/delete'),
-                data: {id: $(this).data('id')},
-                dataType: 'json'
-            }).fail(function (data) {
-                handleError(data);
-            }).done(function (data) {
-                if (data.message) {
-                    Craft.cp.displayNotice(data.message);
-                }
-                line.remove();
-            })
-        }
-    })
+{% js on ready %}
+    new Craft.Emails
 {% endjs %}
-

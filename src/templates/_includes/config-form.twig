@@ -7,7 +7,8 @@
     value: email.heading,
     required: true,
     errors: errors['heading'] ?? [],
-    id: 'field-heading'
+    id: 'field-heading',
+    fieldClass: 'first'
 }) }}
 {{ forms.textField({
     label: 'Key'|t('emails'),
@@ -100,22 +101,3 @@
     instructions: 'Save logs of sent emails. You will be able to resend emails if this is enabled.'|t('emails'),
     errors: errors['saveLogs'] ?? []
 }) }}
-
-{% js on ready %}
-    function toggleRedactorField() {
-        if ($('#lightswitch-plain-field .lightswitch').hasClass('on')) {
-            $('#redactor-config-field').slideUp('fast');
-        } else {
-            $('#redactor-config-field').slideDown('fast');
-        }
-    }
-    $('#lightswitch-plain-field .lightswitch').on('change', function () {
-        toggleRedactorField();
-    });
-    if ($('#lightswitch-plain-field .lightswitch').hasClass('on')) {
-        $('#redactor-config-field').hide();
-    }
-    {% if not email.key %}
-        new Craft.HandleGenerator('#field-heading', '#field-key')
-    {% endif %}
-{% endjs %}
