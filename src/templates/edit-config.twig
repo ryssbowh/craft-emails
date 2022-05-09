@@ -1,5 +1,6 @@
-{% extends "emails/_includes/email" %}
+{% extends "emails/_layouts/email" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('Ryssbowh\\CraftEmails\\assets\\ConfigAssetBundle') %}
 
 {% set title = 'Edit Email Config'|t('emails') %}
 {% set fullPageForm = true %}
@@ -9,5 +10,9 @@
 
 {% block content %}
     {{ hiddenInput('id', email.id) }}
-    {% include "emails/_includes/email-config-form" %}
+    {% include "emails/_includes/config-form" %}
 {% endblock %}
+
+{% js on ready %}
+    new Craft.Emails.EmailConfig(false)
+{% endjs %}

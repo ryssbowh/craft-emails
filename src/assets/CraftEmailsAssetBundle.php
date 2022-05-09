@@ -5,15 +5,15 @@ namespace Ryssbowh\CraftEmails\assets;
 use craft\web\AssetBundle;
 use craft\web\assets\cp\CpAsset;
 
-class PreviewAssetBundle extends AssetBundle
+class CraftEmailsAssetBundle extends AssetBundle
 {
-    public $sourcePath = __DIR__ . '/src';
-
-    public $css = [
-        'preview.css'
-    ];
+    public $sourcePath = __DIR__ . '/dist';
 
     public $depends = [
         CpAsset::class
+    ];
+
+    public $js = [
+        'craftemails.js'
     ];
 }

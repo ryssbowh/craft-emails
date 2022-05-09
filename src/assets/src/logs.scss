@@ -1,0 +1,13 @@
+.pagination {
+    justify-content: center;
+    .page-link.active {
+        box-shadow: inset 0 0 0 1px #0b69a3;
+    }
+}
+input.checkbox {
+    z-index: 2;
+    cursor: pointer;
+    & + label::before {
+       top: 3px;
+    }
+}

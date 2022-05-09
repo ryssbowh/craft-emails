@@ -1,4 +1,5 @@
-{% extends "emails/_includes/email" %}
+{% extends "emails/_layouts/email" %}
+{% do view.registerAssetBundle('Ryssbowh\\CraftEmails\\assets\\LogsAssetBundle') %}
 
 {% set selectedTab = 'logs' %}
 {% set title = 'Logs for {email}'|t('emails', {'email': email.heading}) %}
@@ -15,7 +16,7 @@
 
 {% block toolbar %}
     <a href="{{ url('emails') }}" class="btn back">{{ 'Back'|t('app') }}</a>
-    {% if currentUser.can('deleteEmailLogs') %}
+    {% if currentUser.can('deleteEmailLogs') and logs %}
         <a href="#" data-id="{{ email.id }}" class="btn submit js-delete-all">{{ 'Delete all'|t('emails') }}</a>
         <a href="#" data-id="{{ email.id }}" class="btn submit js-delete-selection" style="display:none">{{ 'Delete selection'|t('emails') }}</a>
     {% endif %}
@@ -90,7 +91,7 @@
     {% else %}
         <p>{{ 'No logs found'|t('emails') }}</p>
     {% endif %}
-    <div id="content-modal" class="modal elementselectormodal" style="display:none">
+    <div id="emails-modal" class="modal elementselectormodal no-header" style="display:none">
         <div class="body has-sidebar">
             <div class="content has-sidebar">
                 <div class="sidebar">
@@ -126,71 +127,11 @@
             </div>
         </div>
     </div>
-    {% include "emails/_includes/js-errors" %}
-    {% include "emails/_includes/js-logs" with {deleteAction: 'emails/cp-emails/delete-logs'} %}
 {% endblock %}
 
 {% js %}
-    var modal = new Garnish.Modal($('#content-modal'), {
-        autoShow: false
-    });
-    $('#content-modal .js-close').click(function(){
-        modal.hide();
-    });
-    function formatEmails(emails) {
-        var html = '';
-        for (var i in emails) {
-            html += '<div><a href=mailto:' + i + '>' + i + (emails[i] ? ' (' + emails[i] + ')' : '') + '</a></div>'
-        }
-        return html;
-    }
-    $('.js-view').click(function(e){
-        e.preventDefault();
-        $.ajax({
-            url: Craft.getActionUrl('emails/cp-emails/view'),
-            data: {id: $(this).data('id')}
-        }).done(function (data) {
-            var iframe = $('#content-modal iframe')[0];
-            iframe.src = "data:text/html;charset=utf-8," + data.body;
-            $('#content-modal .email-subject').html(data.subject);
-            $('#content-modal .email-to').html(formatEmails(data.to));
-            $('#content-modal .email-cc').html(formatEmails(data.cc));
-            $('#content-modal .email-bcc').html(formatEmails(data.bcc));
-            $('#content-modal .email-from').html(formatEmails(data.from));
-            $('#content-modal .email-replyto').html(formatEmails(data.replyTo));
-            var html = '';
-            for (var i in data.attachements) {
-                if (data.attachements[i].deleted) {
-                    html += '<i>' + data.attachements[i].title + '</i>';    
-                } else {
-                    html += '<div><a target="_blank" href="' + data.attachements[i].url + '">' + data.attachements[i].title + '</a></div>';
-                }
-            }
-            $('#content-modal .email-attachements').html(html);
-            modal.show();
-        })
-    });
-    $('.js-resend').click(function (e) {
-        e.preventDefault();
-        let id = $(this).data('id');
-        let button = $(this);
-        if (confirm('{{ "Are you sure you want to resend this email now?"|t("emails") }}')) {
-            $(this).find('.spinner').show();
-            $(this).attr('disabled', true);
-            $.ajax({
-                url: Craft.getActionUrl('emails/cp-emails/resend'),
-                data: {id: id},
-                dataType: 'json'
-            }).fail(function (data) {
-                handleError(data);
-            }).done(function (data){
-                if (data.message) {
-                    Craft.cp.displayNotice(data.message);
-                }
-            }).always(function() {
-                button.find('.spinner').hide();
-                button.attr('disabled', false);
-            });
-        }
-    });
+    new Craft.Emails.EmailLogs({
+        deleteAction: 'emails/cp-emails/delete-logs',
+        viewAction: 'emails/cp-emails/view'
+    })
 {% endjs %}

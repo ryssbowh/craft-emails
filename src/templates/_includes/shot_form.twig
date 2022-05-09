@@ -1,21 +1,7 @@
 {% import "_includes/forms" as forms %}
 
 {% set selectedSubnavItem = 'shots' %}
-{% set id = 'field-users' %}
-{% set name = 'users' %}
-{% set jsSettings = {
-    id: id,
-    name: name,
-    elementType: 'craft\\elements\\User',
-    modalSettings: {
-        hideSidebar: true
-    }
-} %}
 {% set mode = mode ?? 'create' %}
-
-{% macro errorList(errors) %}
-    {% include "_includes/forms/errorList" %}
-{% endmacro %}
 
 {% if mode == 'create' %}
     <div class="flex flex-nowrap align-base">
@@ -65,64 +51,22 @@
             errors: errors['sources'] ?? []
         })
     }}
-    <div class="field quarter">
-        {{ hiddenInput(name, '') }}
-        <div class="heading">
-            <label>{{ 'Users'|t('emails') }}</label>
-        </div>
-        <div id="{{ id }}" class="elementselect">
-            <div class="elements">
-                {% for element in shot.userElements %}
-                    {% include "_elements/element" with {
-                        context: 'field',
-                        size: 'small'
-                    } %}
-                {% endfor %}
-            </div>
-            {{ _self.errorList(errors['users'] ?? []) }}
-            <div class="flex">
-                {{ tag('button', {
-                    type: 'button',
-                    text: 'Add an User'|t('app'),
-                    class: ['btn', 'add', 'icon', 'dashed'],
-                    aria: {
-                        label: 'Add an User'|t('app')
-                    },
-                }) }}
-            </div>
-        </div>
-    </div>
-    <div class="field">
-        <div class="heading">
-            <label>{{ 'Emails'|t('emails') }}</label>
-        </div>
-        <div class="elementselect" id="field-emails">
-            <div class="elements">
-                {% for email, name in shot.emails %}
-                    <div class="email-element flex flex-nowrap">
-                        <input name="emails[]" type="email" class="text" value="{{ email }}" placeholder="{{ 'Email'|t('emails') }}">
-                        <input name="names[]" type="text" class="text" value="{{ name }}" placeholder="{{ 'Name'|t('emails') }}">
-                        <button type="button" class="delete icon" title="Remove" aria-label="Remove"></button>
-                    </div>
-                {% endfor %}
-            </div>
-            {{ _self.errorList(errors['emails'] ?? []) }}
-            {{ tag('button', {
-                type: 'button',
-                text: 'Add an Email'|t('emails'),
-                class: ['btn', 'add', 'icon', 'dashed', 'js-add-email'],
-                aria: {
-                    label: 'Add an Email'|t('emails')
-                },
-            }) }}
-        </div>
-    </div>
+    {% include "emails/_includes/users_field" with {
+        value: shot.userElements,
+        name: 'users',
+        errors: errors['users'] ?? [],
+    } only %}
+    {% include "emails/_includes/emails_field" with {
+        value: shot.emails,
+        name: 'emails',
+        errors: errors['emails'] ?? [],
+    } only %}
 </div>
 {{ forms.lightswitchField({
     label: 'Use queue'|t('emails'),
     name: 'useQueue',
     on: shot.useQueue,
-    instructions: "Send emails through the queue. the emails will be send in the background so you can do other things in the meantime."|t('emails')
+    instructions: "Send emails through the queue. the emails will be sent in the background so you can do other things in the meantime."|t('emails')
 }) }}
 {% if mode == 'create' %}
     {{ forms.lightswitchField({
@@ -132,24 +76,8 @@
     }) }}
 {% endif %}
 
-{% js %}
-    new Craft.BaseElementSelectInput({{ jsSettings|json_encode|raw }});
-    $(document).on('click', '.email-element .delete', function(e){
-        $(this).parent().slideUp('fast', function () {
-            $(this).remove();
-        });
-    });
-    $('.js-add-email').click(function () {
-        var elem = $('<div class="email-element flex flex-nowrap"><input name="emails[]" type="email" class="text" placeholder="{{ "Email"|t("emails") }}"><input name="names[]" type="text" class="text" placeholder="{{ "Name"|t("emails") }}"><button type="button" class="delete icon" title="Remove" aria-label="Remove"></button></div>');
-        elem.hide();
-        $('#field-emails .elements').append(elem);
-        elem.slideDown('fast');
-        elem.find('input').first().focus();
-    });
-{% endjs %}
-
-{% if mode == 'create' and not shot.handle %}
-    {% js %}
+{% if mode == 'create' %}
+    {% js on ready %}
         new Craft.HandleGenerator('#field-name', '#field-handle')
     {% endjs %}
 {% endif %}

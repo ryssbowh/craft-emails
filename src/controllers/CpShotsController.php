@@ -5,7 +5,6 @@ namespace Ryssbowh\CraftEmails\controllers;
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\models\Email;
 use Ryssbowh\CraftEmails\models\EmailShot;
-use Ryssbowh\CraftEmails\assets\EmailsAssetBundle;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
@@ -31,9 +30,8 @@ class CpShotsController extends Controller
      */
     public function actionIndex()
     {
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         return $this->renderTemplate('emails/shots', [
-            'shots' => Emails::$plugin->emailShots->all()
+            'shots' => Emails::$plugin->emailShots->all
         ]);
     }
 
@@ -44,7 +42,6 @@ class CpShotsController extends Controller
      */
     public function actionAddShot(?EmailShot $shot = null)
     {
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         if (!$shot) {
             $shot = new EmailShot;
         }
@@ -144,9 +141,7 @@ class CpShotsController extends Controller
             $message = \Craft::t('emails', '{number} emails have been sent to the queue.', ['number' => $shot->emailCount]);
         } else {
             list($sent, $failed) = Emails::$plugin->emailShots->lastRunResult;
-            if (sizeof($sent)) {
-                $message = \Craft::t('emails', '{number} emails sent.', ['number' => sizeof($sent)]);
-            }
+            $message = \Craft::t('emails', '{number} emails sent.', ['number' => sizeof($sent)]);
             if (sizeof($failed)) {
                 $error = \Craft::t('emails', '{number} emails failed to send.', ['number' => sizeof($failed)]);
             }
@@ -168,7 +163,6 @@ class CpShotsController extends Controller
      */
     public function actionQuickShot(?EmailShot $shot = null)
     {
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         if (!$shot) {
             $shot = new EmailShot;
         }
@@ -219,7 +213,6 @@ class CpShotsController extends Controller
      */
     public function actionLogs(int $id)
     {
-        \Craft::$app->view->registerAssetBundle(EmailsAssetBundle::class);
         $shot = Emails::$plugin->emailShots->getById($id);
         $orderSide = $this->request->getParam('orderSide', 'desc');
         $order = $this->request->getParam('order', 'dateCreated');
@@ -283,7 +276,7 @@ class CpShotsController extends Controller
     protected function allEmails(): array
     {
         $emails = [];
-        foreach (Emails::$plugin->emails->all() as $email) {
+        foreach (Emails::$plugin->emails->all as $email) {
             $emails[$email->id] = $email->heading;
         }
         return $emails;
@@ -298,6 +291,6 @@ class CpShotsController extends Controller
     {
         return array_map(function ($source) {
             return $source->name;
-        }, Emails::$plugin->emailSources->all());
+        }, Emails::$plugin->emailSources->all);
     }
 }

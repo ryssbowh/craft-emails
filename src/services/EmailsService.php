@@ -30,11 +30,11 @@ use yii\helpers\Markdown;
 class EmailsService extends Component
 {
     const CONFIG_KEY = 'emails';
-    const EVENT_BEFORE_SAVE = 1;
-    const EVENT_AFTER_SAVE = 2;
-    const EVENT_BEFORE_APPLY_DELETE = 3;
-    const EVENT_AFTER_DELETE = 4;
-    const EVENT_BEFORE_DELETE = 5;
+    const EVENT_BEFORE_SAVE = 'before-save';
+    const EVENT_AFTER_SAVE = 'after-save';
+    const EVENT_BEFORE_APPLY_DELETE = 'before-apply-delete';
+    const EVENT_AFTER_DELETE = 'after-delete';
+    const EVENT_BEFORE_DELETE = 'before-delete';
 
     protected $_emails = null;
 
@@ -43,7 +43,7 @@ class EmailsService extends Component
      * 
      * @return array
      */
-    public function all(): array
+    public function getAll(): array
     {
         if ($this->_emails === null) {
             $this->_emails = array_map(function ($email) {
@@ -61,12 +61,28 @@ class EmailsService extends Component
      */
     public function getById(int $id): Email
     {
-        foreach ($this->all() as $email) {
+        foreach ($this->all as $email) {
             if ($email->id == $id) {
                 return $email;
             }
         }
         throw EmailException::noId($id);
+    }
+
+    /**
+     * Get Email by uid
+     * 
+     * @param  string  $uid
+     * @return Email
+     */
+    public function getByUid(string $uid): Email
+    {
+        foreach ($this->all as $email) {
+            if ($email->uid == $uid) {
+                return $email;
+            }
+        }
+        throw EmailException::noUid($uid);
     }
 
     /**
@@ -77,7 +93,7 @@ class EmailsService extends Component
      */
     public function getByKey(string $key): ?Email
     {
-        foreach ($this->all() as $email) {
+        foreach ($this->all as $email) {
             if ($email->key == $key) {
                 return $email;
             }
@@ -356,9 +372,8 @@ class EmailsService extends Component
      */
     public function rebuildConfig(RebuildConfigEvent $e)
     {
-        $parts = explode('.', self::CONFIG_KEY);
-        foreach ($this->all() as $email) {
-            $e->config[$parts[0]][$parts[1]][$email->uid] = $email->getConfig();
+        foreach ($this->all as $email) {
+            $e->config[self::CONFIG_KEY][$email->uid] = $email->getConfig();
         }
     }
 

@@ -1,0 +1,30 @@
+{% import "_includes/forms" as forms %}
+
+{{
+    forms.selectField({
+        name: 'email',
+        value: action.email,
+        options: action.allEmails,
+        label: 'Email'|t('emails'),
+        errors: action.getErrors('email')
+    })
+}}
+{{
+    forms.checkboxSelectField({
+        options: craft.emails.emailSources.all|map(source => source.name),
+        values: action.sources,
+        label: 'Sources'|t('emails'),
+        name: 'sources',
+        errors: errors['sources'] ?? []
+    })
+}}
+{% include "emails/_includes/users_field" with {
+    value: action.userElements,
+    name: 'users',
+    errors: errors['users'] ?? [],
+} only %}
+{% include "emails/_includes/emails_field" with {
+    value: action.emails,
+    errors: action.getErrors('emails'),
+    name: 'emails',
+} only %}

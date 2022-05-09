@@ -1,6 +1,7 @@
 {% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
 {% do view.registerAssetBundle("craft\\redactor\\assets\\redactor\\RedactorAsset") %}
+{% do view.registerAssetBundle('Ryssbowh\\CraftEmails\\assets\\ConfigAssetBundle') %}
 
 {% set title = 'New email'|t('emails') %}
 {% set fullPageForm = true %}
@@ -11,5 +12,9 @@
 {% endblock %}
 
 {% block content %}
-    {% include "emails/_includes/email-config-form" %}
+    {% include "emails/_includes/config-form" %}
 {% endblock %}
+
+{% js on ready %}
+    new Craft.Emails.EmailConfig(true)
+{% endjs %}

@@ -1,5 +1,6 @@
 {% extends "_layouts/cp" %}
 {% import "_includes/forms" as forms %}
+{% do view.registerAssetBundle('Ryssbowh\\CraftEmails\\assets\\ShotsAssetBundle') %}
 
 {% set title = 'Email shots'|t('emails') %}
 {% set selectedSubnavItem = 'shots' %}
@@ -92,84 +93,8 @@
             </div>
         </div>
     </div>
-    {% include "emails/_includes/js-errors" %}
 {% endblock %}
 
-{% js %}
-    var modal = new Garnish.Modal($('#emails-modal'), {
-        autoShow: false
-    });
-    $('#emails-modal .js-close').click(function(){
-        modal.hide();
-    });
-    function formatEmails(emails) {
-        var html = '';
-        for (var i in emails) {
-            html += '<div><a href=mailto:' + i + '>' + i + (emails[i] ? ' (' + emails[i] + ')' : '') + '</a></div>'
-        }
-        return html;
-    }
-    $('.js-view').click(function(e){
-        e.preventDefault();
-        $.ajax({
-            url: Craft.getActionUrl('emails/cp-shots/shot-emails'),
-            data: {id: $(this).data('id')}
-        }).done(function (data) {
-            if (data.emails.length == 0) {
-                $('#emails-modal .content').html('<p>{{ "No emails for this shot"|t("emails") }}</p>');
-            } else {
-                $('#emails-modal .content').html(formatEmails(data.emails));
-            }
-            modal.show();
-        })
-    });
-    $('.js-delete').click(function (e) {
-        e.preventDefault();
-        let id = $(this).data('id');
-        let button = $(this);
-        if (confirm('{{ "Are you sure you want to delete this email shot ?"|t("emails") }}')) {
-            $.ajax({
-                url: Craft.getActionUrl('emails/cp-shots/delete'),
-                data: {id: id},
-                dataType: 'json'
-            }).fail(function (data) {
-                handleError(data);
-            }).done(function (data){
-                if (data.message) {
-                    Craft.cp.displayNotice(data.message);
-                }
-                button.parent().parent().parent().remove();
-                if ($('#shots-table-view tbody tr').length == 0) {
-                    $('#shots-table-view').remove();
-                    $('#content').append('<p>{{ "No email shots found"|t("emails") }}</p>');
-                }
-            });
-        }
-    });
-    $('.js-send').click(function (e) {
-        e.preventDefault();
-        let id = $(this).data('id');
-        let button = $(this);
-        if (confirm('{{ "Are you sure you want to send this email shot now?"|t("emails") }}')) {
-            $(this).find('.spinner').show();
-            $(this).attr('disabled', true);
-            $.ajax({
-                url: Craft.getActionUrl('emails/cp-shots/send'),
-                data: {id: id},
-                dataType: 'json'
-            }).fail(function (data) {
-                handleError(data);
-            }).done(function (data){
-                if (data.message) {
-                    Craft.cp.displayNotice(data.message);
-                }
-                if (data.error) {
-                    Craft.cp.displayError(data.error);
-                }
-            }).always(function() {
-                button.find('.spinner').hide();
-                button.attr('disabled', false);
-            });
-        }
-    });
+{% js on ready %}
+    new Craft.Emails.Shots
 {% endjs %}
