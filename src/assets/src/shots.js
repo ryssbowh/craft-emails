@@ -1,32 +1,14 @@
-import { handleError, formatEmails } from './helpers';
 import './common.scss';
 import './shots.scss';
 
-Craft.EmailShots = Garnish.Base.extend({
+Craft.Emails.Shots = Garnish.Base.extend({
     modal: null,
 
     init: function () {
-        this.initAddEmail();
         this.initModal();
         this.initViewEmails();
         this.initDelete();
         this.initSend();
-    },
-
-    initAddEmail: function () {
-        $('.js-add-email').click(function () {
-            var elem = $('<div class="email-element flex flex-nowrap"><input name="emails[]" type="email" class="text" placeholder="' + Craft.t('emails', "Email") + '"><input name="names[]" type="text" class="text" placeholder="' + Craft.t('emails', "Name") + '"><button type="button" class="delete icon" title="' + Craft.t('emails', "Remove") + '" aria-label="' + Craft.t('emails', "Remove") + '"></button></div>');
-            elem.hide();
-            $('#field-emails .elements').append(elem);
-            elem.slideDown('fast');
-            elem.find('input').first().focus();
-        });
-
-        $(document).on('click', '.email-element .delete', function(e){
-            $(this).parent().slideUp('fast', function () {
-                $(this).remove();
-            });
-        });
     },
 
     initModal: function () {
@@ -49,7 +31,7 @@ Craft.EmailShots = Garnish.Base.extend({
                 if (data.emails.length == 0) {
                     $('#emails-modal .content').html('<p>' + Craft.t('emails', "No emails for this shot") + '</p>');
                 } else {
-                    $('#emails-modal .content').html(formatEmails(data.emails));
+                    $('#emails-modal .content').html(Craft.Emails.formatEmails(data.emails));
                 }
                 this.modal.show();
             })
@@ -67,7 +49,7 @@ Craft.EmailShots = Garnish.Base.extend({
                     data: {id: id},
                     dataType: 'json'
                 }).fail(function (data) {
-                    handleError(data);
+                    Craft.Emails.handleError(data);
                 }).done(function (data){
                     if (data.message) {
                         Craft.cp.displayNotice(data.message);
@@ -95,7 +77,7 @@ Craft.EmailShots = Garnish.Base.extend({
                     data: {id: id},
                     dataType: 'json'
                 }).fail(function (data) {
-                    handleError(data);
+                    Craft.Emails.handleError(data);
                 }).done(function (data){
                     if (data.message) {
                         Craft.cp.displayNotice(data.message);

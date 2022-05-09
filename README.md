@@ -1,7 +1,8 @@
 # Emails for Craft CMS ^3.5
 
-Replace Craft System messages by database driven email templates editable in the backend.  
-Define email shots to send to various users.
+Take control over your emails in the CMS, modify and translate content, create new emails and mailing shots and keep track of the emails sent by your website.
+
+Integrate to [Triggers](https://plugins.craftcms.com/triggers) and define a new action "Send Email"
 
 ## Emails
 
@@ -156,7 +157,3 @@ Craft >= 3.6.5
 ## Installation
 
 `composer require ryssbowh/craft-emails`
-
-## Roadmap
-
-- Add a trigger system to send emails automatically when something happens on the system

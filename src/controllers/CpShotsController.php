@@ -31,7 +31,7 @@ class CpShotsController extends Controller
     public function actionIndex()
     {
         return $this->renderTemplate('emails/shots', [
-            'shots' => Emails::$plugin->emailShots->all()
+            'shots' => Emails::$plugin->emailShots->all
         ]);
     }
 
@@ -276,7 +276,7 @@ class CpShotsController extends Controller
     protected function allEmails(): array
     {
         $emails = [];
-        foreach (Emails::$plugin->emails->all() as $email) {
+        foreach (Emails::$plugin->emails->all as $email) {
             $emails[$email->id] = $email->heading;
         }
         return $emails;
@@ -291,6 +291,6 @@ class CpShotsController extends Controller
     {
         return array_map(function ($source) {
             return $source->name;
-        }, Emails::$plugin->emailSources->all());
+        }, Emails::$plugin->emailSources->all);
     }
 }

@@ -41,7 +41,7 @@ class EmailShotsService extends Component
      * 
      * @return array
      */
-    public function all(): array
+    public function getAll(): array
     {
         if ($this->_shots === null) {
             $this->_shots = array_map(function ($shot) {
@@ -59,7 +59,7 @@ class EmailShotsService extends Component
      */
     public function getById(int $id): EmailShot
     {
-        foreach ($this->all() as $shot) {
+        foreach ($this->all as $shot) {
             if ($shot->id == $id) {
                 return $shot;
             }
@@ -75,7 +75,7 @@ class EmailShotsService extends Component
      */
     public function getByHandle(string $handle): EmailShot
     {
-        foreach ($this->all() as $shot) {
+        foreach ($this->all as $shot) {
             if ($shot->handle == $handle) {
                 return $shot;
             }

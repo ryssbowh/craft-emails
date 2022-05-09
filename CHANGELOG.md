@@ -1,5 +1,15 @@
 # Web Puzzlers Emails Changelog
 
+## 1.4.0 - 2022-05-09
+
+### Changed
+- Javascript rehaul with webpack
+- Renamed all services `all()` methods to `getAll()`
+
+### Added
+- Integration to [triggers](https://plugins.craftcms.com/triggers)
+- New trigger action "Send email"
+
 ## 1.3.0 - 2022-01-31
 
 ### Removed

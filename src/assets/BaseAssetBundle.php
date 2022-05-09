@@ -11,7 +11,8 @@ class BaseAssetBundle extends AssetBundle
     public $sourcePath = __DIR__ . '/dist';
 
     public $depends = [
-        CpAsset::class
+        CpAsset::class,
+        CraftEmailsAssetBundle::class
     ];
 
     /**

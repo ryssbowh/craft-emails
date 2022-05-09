@@ -101,21 +101,15 @@ class EmailShot extends Model
                 }
             }, 'on' => 'create'],
             ['emails', function () {
-                if ($names = \Craft::$app->request->getBodyParam('names')) {
-                    $emails = [];
-                    foreach ($this->emails as $index => $email) {
-                        if ($email) {
-                            $emails[$email] = $names[$index];
-                        }
-                    }
-                    $this->emails = $emails;
-                }
-                foreach ($this->emails as $email => $name) {
-                    if ($email and !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        $this->addError('emails', \Craft::t('yii', '{attribute} is not a valid email address.', ['attribute' => $email]));
+                $emails = [];
+                foreach ($this->emails as $email) {
+                    $emails[$email['email'] ?? ''] = $email['name'] ?? '';
+                    if (!filter_var($email['email'] ?? '', FILTER_VALIDATE_EMAIL)) {
+                        $this->addError('emails', \Craft::t('yii', '{attribute} is not a valid email address.', ['attribute' => $email['email'] ?? '']));
                     }
                 }
-            }],
+                $this->emails = $emails;
+            }, 'skipOnEmpty' => false],
             ['users', function () {
                 foreach ($this->users as $user) {
                     $elem = User::find()->id($user)->one();
@@ -148,6 +142,7 @@ class EmailShot extends Model
             'saveLogs' => $this->saveLogs
         ];
     }
+    
     /**
      * Users setter
      * 

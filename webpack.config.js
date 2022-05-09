@@ -14,6 +14,7 @@ module.exports = {
   },
 
   entry: {
+    craftemails: srcPath + "craftemails.js",
     content: srcPath + "content.js",
     emails: srcPath + "emails.js",
     logs: srcPath + "logs.js",

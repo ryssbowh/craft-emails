@@ -117,7 +117,7 @@
 {% endblock %}
 
 {% js on ready %}
-    new Craft.EmailContent({
+    new Craft.Emails.EmailContent({
         jsSettings: {{ jsSettings|json_encode|raw }},
         langId: '{{ langId }}',
         email: {{ email|json_encode|raw }}

@@ -79,6 +79,7 @@ class Install extends Migration
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
+
         $this->createTable('{{%emails_attachements}}', [
             'id' => $this->primaryKey(),
             'message_id' => $this->integer(11)->notNull(),

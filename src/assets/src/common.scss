@@ -19,21 +19,13 @@
     align-items: baseline;
 }
 
-.modal {
-    z-index: 102;
-}
-
-.menu {
-    z-index:  104;
-}
-
 #emails-modal {
     max-width:  100px;
     iframe {
         border: 1px solid lightgray;
     }
     .main .heading span {
-       color: #596673;
+        color: #596673;
         font-size: 11px;
         font-weight: bold;
     }
@@ -67,6 +59,18 @@
             &:hover:before {
                 color: initial;    
             }
+        }
+    }
+}
+
+.field-emails {
+    .js-add-email {
+        margin-top: 7px;
+    }
+    .email-element {
+        margin-top: 5px;
+        &.first-child {
+            margin-top: 0;
         }
     }
 }

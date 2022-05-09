@@ -1,8 +1,7 @@
-import { handleError } from './helpers';
 import './common.scss';
 import './content.scss';
 
-Craft.EmailPreview = Garnish.Base.extend({
+let Preview = Garnish.Base.extend({
     emailId: null,
     langId: null,
     isActive: false,
@@ -217,7 +216,7 @@ Craft.EmailPreview = Garnish.Base.extend({
     },
 });
 
-Craft.EmailContent = Garnish.Base.extend({
+Craft.Emails.EmailContent = Garnish.Base.extend({
     jsSettings: null,
     livePreview: null,
     langId: null,
@@ -234,7 +233,7 @@ Craft.EmailContent = Garnish.Base.extend({
     },
 
     initLivePreview: function () {
-        this.livePreview = new Craft.EmailPreview({
+        this.livePreview = new Preview({
             langId: this.langId,
             emailId: this.email.id
         });
@@ -255,7 +254,7 @@ Craft.EmailContent = Garnish.Base.extend({
                 },
                 dataType: 'json'
             }).fail(function (data) {
-                handleError(data);
+                Craft.Emails.handleError(data);
             }).done(function (data){
                 window.location.href = href;
             })
@@ -275,7 +274,7 @@ Craft.EmailContent = Garnish.Base.extend({
                     },
                     dataType: 'json'
                 }).fail(function (data) {
-                    handleError(data);
+                    Craft.Emails.handleError(data);
                 }).done(function (data){
                     window.location.href = href;
                 })

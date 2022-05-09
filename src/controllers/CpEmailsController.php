@@ -39,7 +39,7 @@ class CpEmailsController extends Controller
         $allow = \Craft::$app->config->general->allowAdminChanges;
         return $this->renderTemplate('emails/emails', [
             'title' => \Craft::t('emails', 'Emails'),
-            'emails' => Emails::$plugin->emails->all(),
+            'emails' => Emails::$plugin->emails->all,
             'canAddDelete' => $allow && \Craft::$app->getUser()->checkPermission('addDeleteEmailTemplates'),
             'canEditConfig' => $allow && \Craft::$app->getUser()->checkPermission('modifyEmailConfig'),
             'canViewLogs' => \Craft::$app->getUser()->checkPermission('seeEmailLogs')

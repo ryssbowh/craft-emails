@@ -1,0 +1,36 @@
+{% set id = id ?? 'field-emails' %}
+
+<div class="field field-emails">
+    <div class="heading">
+        <label>{{ 'Emails'|t('emails') }}</label>
+    </div>
+    <div id="{{ id }}">
+        <div class="skeleton email-element flex flex-nowrap" style="display:none">
+            <input name="{{ name }}" type="email" required disabled class="text email-input" placeholder="{{ 'Email'|t('emails') }}">
+            <input name="{{ name }}" type="text" disabled class="text name-input" placeholder="{{ 'Name'|t('emails') }}">
+            <button type="button" class="delete icon" title="Remove" aria-label="Remove"></button>
+        </div>
+        <div class="elements">
+            {% for email, emailName in value %}
+                <div class="email-element flex flex-nowrap">
+                    <input name="{{ name }}[{{ loop.index - 1 }}][email]" type="email" class="text email-input" value="{{ email }}" placeholder="{{ 'Email'|t('emails') }}">
+                    <input name="{{ name }}[{{ loop.index - 1 }}][name]" type="text" class="text name-input" value="{{ emailName }}" placeholder="{{ 'Name'|t('emails') }}">
+                    <button type="button" class="delete icon" title="Remove" aria-label="Remove"></button>
+                </div>
+            {% endfor %}
+        </div>
+        {% include "_includes/forms/errorList" %}
+        {{ tag('button', {
+            type: 'button',
+            text: 'Add an Email'|t('emails'),
+            class: ['btn', 'add', 'icon', 'dashed', 'js-add-email'],
+            aria: {
+                label: 'Add an Email'|t('emails')
+            },
+        }) }}
+    </div>
+</div>
+
+{% js %}
+    new Craft.Emails.EmailsField('{{ craft.app.view.namespaceInputId(id) }}');
+{% endjs %}

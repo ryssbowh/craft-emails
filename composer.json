@@ -2,6 +2,7 @@
     "name": "ryssbowh/craft-emails",
     "description": "Take control over your emails in Craft",
     "type": "craft-plugin",
+    "license": "proprietary",
     "keywords": [
         "craft",
         "cms",
@@ -31,6 +32,7 @@
         "handle": "emails",
         "developer": "The Web Puzzlers",
         "developerUrl": "https://github.com/ryssbowh",
+        "documentationUrl": "https://github.com/ryssbowh/craft-emails",
         "class": "Ryssbowh\\CraftEmails\\Emails"
     }
 }

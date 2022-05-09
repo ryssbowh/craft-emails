@@ -1,8 +1,7 @@
-import { handleError, formatEmails } from './helpers';
 import './common.scss';
 import './logs.scss';
 
-Craft.EmailLogs = Garnish.Base.extend({
+Craft.Emails.EmailLogs = Garnish.Base.extend({
     selection: [],
     deleteAction: null,
     viewAction: null,
@@ -30,7 +29,7 @@ Craft.EmailLogs = Garnish.Base.extend({
                     data: {id: id},
                     dataType: 'json'
                 }).fail(function (data) {
-                    handleError(data);
+                    Craft.Emails.handleError(data);
                 }).done(function (data){
                     location.reload();
                 });
@@ -51,7 +50,7 @@ Craft.EmailLogs = Garnish.Base.extend({
                     },
                     dataType: 'json'
                 }).fail(function (data) {
-                    handleError(data);
+                    Craft.Emails.handleError(data);
                 }).done(function (data){
                     location.reload();
                 });
@@ -83,11 +82,11 @@ Craft.EmailLogs = Garnish.Base.extend({
                 var iframe = $('#emails-modal iframe')[0];
                 iframe.src = "data:text/html;charset=utf-8," + data.body;
                 $('#emails-modal .email-subject').html(data.subject);
-                $('#emails-modal .email-to').html(formatEmails(data.to));
-                $('#emails-modal .email-cc').html(formatEmails(data.cc));
-                $('#emails-modal .email-bcc').html(formatEmails(data.bcc));
-                $('#emails-modal .email-from').html(formatEmails(data.from));
-                $('#emails-modal .email-replyto').html(formatEmails(data.replyTo));
+                $('#emails-modal .email-to').html(Craft.Emails.formatEmails(data.to));
+                $('#emails-modal .email-cc').html(Craft.Emails.formatEmails(data.cc));
+                $('#emails-modal .email-bcc').html(Craft.Emails.formatEmails(data.bcc));
+                $('#emails-modal .email-from').html(Craft.Emails.formatEmails(data.from));
+                $('#emails-modal .email-replyto').html(Craft.Emails.formatEmails(data.replyTo));
                 var html = '';
                 for (var i in data.attachements) {
                     html += '<div><a target="_blank" href="' + data.attachements[i].url + '">' + data.attachements[i].title + '</a></div>';
@@ -95,7 +94,7 @@ Craft.EmailLogs = Garnish.Base.extend({
                 $('#emails-modal .email-attachements').html(html);
                 this.modal.show();
             }).fail(data => {
-                handleError(data);
+                Craft.Emails.handleError(data);
             });
         });
     },
@@ -132,7 +131,7 @@ Craft.EmailLogs = Garnish.Base.extend({
                     data: {id: id},
                     dataType: 'json'
                 }).fail(function (data) {
-                    handleError(data);
+                    Craft.Emails.handleError(data);
                 }).done(function (data){
                     if (data.message) {
                         Craft.cp.displayNotice(data.message);
@@ -169,18 +168,20 @@ Craft.EmailLogs = Garnish.Base.extend({
     }
 });
 
-Craft.EmailShotLogs = Craft.EmailLogs.extend({
+Craft.Emails.ShotLogs = Craft.Emails.EmailLogs.extend({
     initView: function () {
         $('.js-view').click(e => {
             e.preventDefault();
             $.ajax({
                 url: Craft.getActionUrl('emails/cp-shots/log-emails'),
                 data: {id: $(e.target).data('id')}
+            }).fail(function (data) {
+                Craft.Emails.handleError(data);
             }).done(data => {
                 if (data.emails.length == 0) {
                     $('#emails-modal .content').html('<p>' + Craft.t('emails', "No emails for this log") + '</p>');
                 } else {
-                    $('#emails-modal .content').html(formatEmails(data.emails));
+                    $('#emails-modal .content').html(Craft.Emails.formatEmails(data.emails));
                 }
                 this.modal.show();
             })

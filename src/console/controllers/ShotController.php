@@ -1,6 +1,6 @@
 <?php
 
-namespace Ryssbowh\CraftEmails\console;
+namespace Ryssbowh\CraftEmails\console\controllers;
 
 use Ryssbowh\CraftEmails\Emails;
 use craft\console\Controller;

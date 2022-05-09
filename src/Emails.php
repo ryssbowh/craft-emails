@@ -3,12 +3,14 @@
 namespace Ryssbowh\CraftEmails;
 
 use Craft;
+use Ryssbowh\CraftEmails\assets\CraftEmailsAssetBundle;
 use Ryssbowh\CraftEmails\behaviors\MessageBehavior;
 use Ryssbowh\CraftEmails\emailSources\AllUsersEmailSource;
 use Ryssbowh\CraftEmails\emailSources\MailchimpEmailSource;
 use Ryssbowh\CraftEmails\emailSources\UserGroupEmailSource;
 use Ryssbowh\CraftEmails\events\RegisterEmailSourcesEvent;
 use Ryssbowh\CraftEmails\models\Settings;
+use Ryssbowh\CraftEmails\models\actions\SendEmail;
 use Ryssbowh\CraftEmails\services\AttachementsService;
 use Ryssbowh\CraftEmails\services\EmailShotsService;
 use Ryssbowh\CraftEmails\services\EmailSourceService;
@@ -17,6 +19,9 @@ use Ryssbowh\CraftEmails\services\EmailsService;
 use Ryssbowh\CraftEmails\services\MailchimpService;
 use Ryssbowh\CraftEmails\services\MessagesService;
 use Ryssbowh\CraftEmails\variables\EmailsVariable;
+use Ryssbowh\CraftTriggers\controllers\CpTriggersController;
+use Ryssbowh\CraftTriggers\events\RegisterActionsEvent;
+use Ryssbowh\CraftTriggers\services\TriggersService;
 use craft\base\Plugin;
 use craft\db\Table;
 use craft\events\DefineBehaviorsEvent;
@@ -80,7 +85,7 @@ class Emails extends Plugin
             'emailShots' => EmailShotsService::class,
             'mailchimp' => MailchimpService::class,
             'attachements' => AttachementsService::class,
-            'messages' => MessagesService::class,
+            'messages' => MessagesService::class
         ]);
 
         $this->registerMailer();
@@ -94,10 +99,7 @@ class Emails extends Plugin
         $this->registerSiteTemplates();
         $this->registerSiteChange();
         $this->registerBehaviors();
-
-        if (Craft::$app->request->getIsConsoleRequest()) {
-            $this->controllerNamespace = 'Ryssbowh\\CraftEmails\\console';
-        }
+        $this->registerTriggers();
 
         if (Craft::$app->request->getIsCpRequest()) {
             $this->registerCpRoutes();
@@ -171,6 +173,22 @@ class Emails extends Plugin
                 }
             }
         );
+    }
+
+    /**
+     * Integration to triggers plugin
+     * @see https://github.com/ryssbowh/craft-triggers/
+     */
+    protected function registerTriggers()
+    {
+        if (\Craft::$app->plugins->isPluginInstalled('triggers')) {
+            Event::on(TriggersService::class, TriggersService::EVENT_REGISTER_ACTIONS, function (RegisterActionsEvent $e) {
+                $e->add(new SendEmail);
+            });
+            Event::on(CpTriggersController::class, CpTriggersController::EVENT_EDIT_TRIGGER, function (Event $e) {
+                \Craft::$app->view->registerAssetBundle(CraftEmailsAssetBundle::class);
+            });
+        }
     }
 
     /**
@@ -356,12 +374,12 @@ class Emails extends Plugin
                 'emails/quick-shot' => 'emails/cp-shots/quick-shot',
                 'emails/edit/<id:\d+>' => 'emails/cp-emails/edit-content',
                 'emails/edit/<id:\d+>/<langId>' => 'emails/cp-emails/edit-content',
-                'emails/logs/<emailId:\d+>' => 'emails/cp-emails/logs'
+                'emails/logs/<emailId:\d+>' => 'emails/cp-emails/logs',
             ]);
             if (\Craft::$app->config->getGeneral()->allowAdminChanges) {
                 $event->rules = array_merge($event->rules, [
                     'emails/add' => 'emails/cp-emails/add',
-                    'emails/config/<id:\d+>' => 'emails/cp-emails/edit-config',
+                    'emails/config/<id:\d+>' => 'emails/cp-emails/edit-config'
                 ]);
             }
         });

@@ -1,8 +1,7 @@
-import { handleError } from './helpers';
 import './common.scss';
 import './emails.scss';
 
-Craft.Emails = Garnish.Base.extend({
+Craft.Emails.Emails = Garnish.Base.extend({
     init: function () {
         this.initDelete();
     },
@@ -16,7 +15,7 @@ Craft.Emails = Garnish.Base.extend({
                     data: {id: $(this).data('id')},
                     dataType: 'json'
                 }).fail(function (data) {
-                    handleError(data);
+                    Craft.Emails.handleError(data);
                 }).done(function (data) {
                     if (data.message) {
                         Craft.cp.displayNotice(data.message);

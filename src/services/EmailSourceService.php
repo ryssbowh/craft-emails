@@ -21,7 +21,7 @@ class EmailSourceService extends Component
      * 
      * @return array
      */
-    public function all(): array
+    public function getAll(): array
     {
         if ($this->_sources === null) {
             $this->register();
@@ -37,8 +37,8 @@ class EmailSourceService extends Component
      */
     public function getByHandle(string $handle): EmailSourceInterface
     {
-        if (isset($this->all()[$handle])) {
-            return $this->all()[$handle];
+        if (isset($this->all[$handle])) {
+            return $this->all[$handle];
         }
         throw EmailSourceException::noHandle($handle);
     }
@@ -51,7 +51,7 @@ class EmailSourceService extends Component
      */
     public function has(string $handle): bool
     {
-        return isset($this->all()[$handle]);
+        return isset($this->all[$handle]);
     }
 
     /**

@@ -1,6 +1,6 @@
 import './common.scss';
 
-Craft.EmailConfig = Garnish.Base.extend({
+Craft.Emails.EmailConfig = Garnish.Base.extend({
     init: function (isAdding) {
         this.initPlainToggle();
         if (isAdding) {
