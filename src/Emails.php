@@ -306,27 +306,30 @@ class Emails extends Plugin
             UserPermissions::class,
             UserPermissions::EVENT_REGISTER_PERMISSIONS,
             function (RegisterUserPermissionsEvent $event) {
-                $event->permissions[\Craft::t('emails', 'Emails')] = [
-                    'addDeleteEmailTemplates' => [
-                        'label' => \Craft::t('emails', 'Add and delete emails')
-                    ],
-                    'modifyEmailContent' => [
-                        'label' => \Craft::t('emails', 'Modify emails content')
-                    ],
-                    'modifyEmailConfig' => [
-                        'label' => \Craft::t('emails', 'Modify emails config')
-                    ],
-                    'seeEmailLogs' => [
-                        'label' => \Craft::t('emails', 'See logs')
-                    ],
-                    'deleteEmailLogs' => [
-                        'label' => \Craft::t('emails', 'Delete logs')
-                    ],
-                    'sendEmails' => [
-                        'label' => \Craft::t('emails', 'Send emails')
-                    ],
-                    'manageEmailShots' => [
-                        'label' => \Craft::t('emails', 'Manage email shots')
+                $event->permissions[] = [
+                    'heading' => \Craft::t('emails', 'Emails'),
+                    'permissions' => [
+                        'addDeleteEmailTemplates' => [
+                            'label' => \Craft::t('emails', 'Add and delete emails')
+                        ],
+                        'modifyEmailContent' => [
+                            'label' => \Craft::t('emails', 'Modify emails content')
+                        ],
+                        'modifyEmailConfig' => [
+                            'label' => \Craft::t('emails', 'Modify emails config')
+                        ],
+                        'seeEmailLogs' => [
+                            'label' => \Craft::t('emails', 'See logs')
+                        ],
+                        'deleteEmailLogs' => [
+                            'label' => \Craft::t('emails', 'Delete logs')
+                        ],
+                        'sendEmails' => [
+                            'label' => \Craft::t('emails', 'Send emails')
+                        ],
+                        'manageEmailShots' => [
+                            'label' => \Craft::t('emails', 'Manage email shots')
+                        ]
                     ]
                 ];
             }

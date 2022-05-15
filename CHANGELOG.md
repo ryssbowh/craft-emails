@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 2.0.2 - 2022-05-15
+
+### Fixed
+- Fixed issue with permissions
+
 ## 2.0.1 - 2022-05-09
 
 ### Fixed
