@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 1.4.1 - 2022-05-28
+
+### Fixed
+- Fixed logging issue on sending shots through console
+
 ## 1.4.0 - 2022-05-09
 
 ### Changed

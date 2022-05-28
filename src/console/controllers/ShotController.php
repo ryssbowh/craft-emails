@@ -41,7 +41,7 @@ class ShotController extends Controller
         } else {
             list($sent, $failed) = Emails::$plugin->emailShots->lastRunResult;
             if (sizeof($sent)) {
-                $this->stdout(\Craft::t('emails', '{number} emails sent.', ['number' => $sent]) . "\n");
+                $this->stdout(\Craft::t('emails', '{number} emails sent.', ['number' => sizeof($sent)]) . "\n");
             }
             if (sizeof($failed)) {
                 $this->stderr(\Craft::t('emails', '{number} emails failed to send.', ['number' => sizeof($failed)]) . "\n");

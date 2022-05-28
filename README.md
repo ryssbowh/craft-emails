@@ -157,3 +157,7 @@ Craft >= 3.6.5
 ## Installation
 
 `composer require ryssbowh/craft-emails`
+
+## Documentation
+
+[Class reference](https://ryssbowh.github.io/docs/craft-emails1/namespaces/ryssbowh-craftemails.html)
