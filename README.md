@@ -4,8 +4,6 @@ Take control over your emails in the CMS, modify and translate content, create n
 
 Integrate to [Triggers](https://plugins.craftcms.com/triggers) and define a new action "Send Email"
 
-Visit the [class reference](https://ryssbowh.github.io/docs/craft-emails/namespaces/ryssbowh-craftemails.html)
-
 ## Emails
 
 ![List](/images/list.png)
@@ -159,3 +157,7 @@ Craft >= 3.6.5
 ## Installation
 
 `composer require ryssbowh/craft-emails`
+
+## Documentation
+
+[Class reference](https://ryssbowh.github.io/docs/craft-emails/namespaces/ryssbowh-craftemails.html)
