@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 1.4.2 - 2022-07-12
+
+### Fixed
+- Removed text column default value. [Issue 5](https://github.com/ryssbowh/craft-emails/issues/5)
+
 ## 1.4.1 - 2022-05-28
 
 ### Fixed
