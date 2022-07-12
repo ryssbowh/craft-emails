@@ -22,7 +22,7 @@ class Install extends Migration
             'system' => $this->boolean()->defaultValue(false),
             'redactorConfig' => $this->string(255),
             'heading' => $this->string(255)->notNull(),
-            'instructions' => $this->text()->defaultValue(''),
+            'instructions' => $this->text(),
             'from' => $this->string(255),
             'fromName' => $this->string(255),
             'replyTo' => $this->string(255),
