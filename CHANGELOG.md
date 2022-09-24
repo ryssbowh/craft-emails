@@ -3,7 +3,7 @@
 ## 2.0.3 - 2022-09-24
 
 ### Fixed
-- Fixed issue where the method used to get the body for non-html emails was wrong [#7](https://github.com/ryssbowh/craft-emails/issues/7)
+- Fixed issue where the wrong method was used to get the text body. [#7](https://github.com/ryssbowh/craft-emails/issues/7)
 
 ## 2.0.2 - 2022-05-15
 
