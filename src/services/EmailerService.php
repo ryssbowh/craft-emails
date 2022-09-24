@@ -182,7 +182,7 @@ class EmailerService extends Mailer
                 $record->save(false);
                 if ($record->saveLogs) {
                     if ($mail->plain) {
-                        $body = $message->getBody();
+                        $body = $message->getTextBody();
                     } else {
                         $body = $message->getHtmlBody();
                     }
