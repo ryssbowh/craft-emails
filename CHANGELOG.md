@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 2.0.4 - 2022-09-27
+
+### Fixed
+- Fixed empty spaces in text emails. [#8](https://github.com/ryssbowh/craft-emails/issues/8)
+
 ## 2.0.3 - 2022-09-24
 
 ### Fixed

@@ -101,7 +101,7 @@ class EmailerService extends Mailer
             }
             // Remove </> from around URLs, so they’re not interpreted as HTML tags
             $textBody = preg_replace('/<(https?:\/\/.+?)>/', '$1', $html);
-            $message->setTextBody(strip_tags($textBody));
+            $message->setTextBody(trim(strip_tags($textBody)));
 
             // Set things back to normal
             Craft::$app->language = $language;
