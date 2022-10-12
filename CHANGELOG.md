@@ -1,5 +1,10 @@
 # Web Puzzlers Emails Changelog
 
+## 1.4.4 - 2022-10-12
+
+### Changed
+- Changed plugin icons
+
 ## 1.4.3 - 2022-09-27
 
 ### Fixed
