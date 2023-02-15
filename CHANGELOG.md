@@ -1,5 +1,11 @@
 # Web Puzzlers Emails Changelog
 
+## 1.4.6 - 2023-02-15
+
+### Fixed
+
+- Fixed email log replyTo wrong typing [#9](https://github.com/ryssbowh/craft-emails/issues/9)
+
 ## 1.4.5 - 2022-11-17
 
 ### Changed
