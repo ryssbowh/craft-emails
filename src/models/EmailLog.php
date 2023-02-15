@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Ryssbowh\CraftEmails\models;
 
@@ -22,7 +22,7 @@ class EmailLog extends Model
 
     /**
      * @var \DateTime
-     */ 
+     */
     public $dateCreated;
 
     /**
@@ -90,7 +90,7 @@ class EmailLog extends Model
 
     /**
      * User getter
-     * 
+     *
      * @return ?User
      */
     public function getUser(): ?User
@@ -103,7 +103,7 @@ class EmailLog extends Model
 
     /**
      * Get attachements as elements (assets)
-     * 
+     *
      * @return array
      */
     public function getAttachementsElements(): array
@@ -116,7 +116,7 @@ class EmailLog extends Model
 
     /**
      * Attachements setter
-     * 
+     *
      * @param array|string $attachements
      */
     public function setAttachements($attachements)
@@ -132,7 +132,7 @@ class EmailLog extends Model
 
     /**
      * From setter
-     * 
+     *
      * @param array|string $from
      */
     public function setFrom($from)
@@ -145,7 +145,7 @@ class EmailLog extends Model
 
     /**
      * To setter
-     * 
+     *
      * @param array|string $to
      */
     public function setTo($to)
@@ -158,7 +158,7 @@ class EmailLog extends Model
 
     /**
      * Bcc setter
-     * 
+     *
      * @param array|string $bcc
      */
     public function setBcc($bcc)
@@ -174,7 +174,7 @@ class EmailLog extends Model
 
     /**
      * Cc setter
-     * 
+     *
      * @param array|string $cc
      */
     public function setCc($cc)
@@ -190,7 +190,7 @@ class EmailLog extends Model
 
     /**
      * Reply to setter
-     * 
+     *
      * @param array|string $to
      */
     public function setReplyTo($to)
@@ -203,7 +203,7 @@ class EmailLog extends Model
 
     /**
      * From getter
-     * 
+     *
      * @return array
      */
     public function getFrom(): array
@@ -213,7 +213,7 @@ class EmailLog extends Model
 
     /**
      * To getter
-     * 
+     *
      * @return array
      */
     public function getTo(): array
@@ -223,7 +223,7 @@ class EmailLog extends Model
 
     /**
      * Attachements getter
-     * 
+     *
      * @return array
      */
     public function getAttachements(): array
@@ -233,17 +233,17 @@ class EmailLog extends Model
 
     /**
      * Reply to getter
-     * 
+     *
      * @return array
      */
     public function getReplyTo(): array
     {
-        return $this->_replyTo;
+        return $this->_replyTo ?? [];
     }
 
     /**
      * Bcc getter
-     * 
+     *
      * @return array
      */
     public function getBcc(): array
@@ -253,7 +253,7 @@ class EmailLog extends Model
 
     /**
      * Cc getter
-     * 
+     *
      * @return array
      */
     public function getCc(): array
@@ -263,7 +263,7 @@ class EmailLog extends Model
 
     /**
      * Email getter
-     * 
+     *
      * @return ?Email
      */
     public function getEmail(): ?Email
@@ -276,7 +276,7 @@ class EmailLog extends Model
 
     /**
      * Body getter
-     * 
+     *
      * @return string
      */
     public function getBody(): string
@@ -290,7 +290,7 @@ class EmailLog extends Model
 
     /**
      * Text body getter
-     * 
+     *
      * @return string
      */
     public function getTextBody(): string
