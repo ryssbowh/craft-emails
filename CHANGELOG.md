@@ -1,5 +1,11 @@
 # Web Puzzlers Emails Changelog
 
+## 1.4.7 - 2023-02-15
+
+### Fixed
+
+- Fixed emails not being sent when other plugins would not use `Mailer::composeFromKey()` [#10](https://github.com/ryssbowh/craft-emails/issues/10)
+
 ## 1.4.6 - 2023-02-15
 
 ### Fixed

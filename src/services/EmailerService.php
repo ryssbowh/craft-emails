@@ -26,12 +26,17 @@ class EmailerService extends Mailer
      */
     public function send($message)
     {
+        if (!$message->key) {
+            return parent::send($message);
+        }
+        $mail = Emails::$plugin->emails->getByKey($message->key);
+        if (!$mail) {
+            return parent::send($message);
+        }
         // fire a beforePrep event
         $this->trigger(self::EVENT_BEFORE_PREP, new MailEvent([
             'message' => $message,
         ]));
-
-        $mail = Emails::$plugin->emails->getByKey($message->key);
         $generalConfig = Craft::$app->getConfig()->getGeneral();
         $settings = App::mailSettings();
         $view = Craft::$app->getView();
