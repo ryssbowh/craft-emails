@@ -30,3 +30,21 @@
     value: settings.mailchimpCacheDuration,
     errors: errors['mailchimpCacheDuration'] ?? []
 }) }}
+
+<p>{{ 'Reinstall all emails, this will install missing emails and delete orphans created by other (uninstalled) plugins'|t('emails') }}</p>
+<button type="button" class="js-reinstall btn submit">{{ 'Reinstall'|t('emails') }}</button>
+
+{% js %}
+    $('.js-reinstall').click(() => {
+        $('.js-reinstall').attr('disabled', true);
+        $.ajax({
+            url: '/?action=emails/cp-emails/reinstall'
+        }).always(() => {
+            $('.js-reinstall').attr('disabled', false);
+        }).fail(() => {
+            Craft.cp.displayError("{{ 'An unexpected error happened'|t('emails') }}");
+        }).done(() => {
+            Craft.cp.displayNotice("{{ 'Emails have been reinstalled'|t('emails') }}");
+        });
+    });
+{% endjs %}

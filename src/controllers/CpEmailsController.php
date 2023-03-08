@@ -353,6 +353,19 @@ class CpEmailsController extends Controller
     }
 
     /**
+     * Reinstall all emails
+     *
+     * @since 1.4.8
+     */
+    public function actionReinstall()
+    {
+        Emails::$plugin->emails->install();
+        return $this->asJson([
+            'success' => true
+        ]);
+    }
+
+    /**
      * Edit system message
      * 
      * @param  SystemMessage $message

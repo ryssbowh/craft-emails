@@ -1,6 +1,16 @@
 # Web Puzzlers Emails Changelog
 
-## 1.4.7 - 2023-02-15
+## 1.4.8 - 2023-03-08
+
+### Fixed
+
+- Make sure system messages registered by other plugins are properly installed and uninstalled [#10](https://github.com/ryssbowh/craft-emails/issues/10)
+- Order emails by heading on dashboard
+- Make sure Redactor is installed along with Emails
+- Ensure project config dateModified is not updated one more time when uninstalling this plugin
+- Added a helper on the settings to reinstall email in case of issues [#10](https://github.com/ryssbowh/craft-emails/issues/10)
+
+## 1.4.7 - 2023-03-07
 
 ### Fixed
 

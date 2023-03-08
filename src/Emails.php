@@ -9,6 +9,7 @@ use Ryssbowh\CraftEmails\emailSources\AllUsersEmailSource;
 use Ryssbowh\CraftEmails\emailSources\MailchimpEmailSource;
 use Ryssbowh\CraftEmails\emailSources\UserGroupEmailSource;
 use Ryssbowh\CraftEmails\events\RegisterEmailSourcesEvent;
+use Ryssbowh\CraftEmails\jobs\ReinstallJob;
 use Ryssbowh\CraftEmails\models\Settings;
 use Ryssbowh\CraftEmails\models\actions\SendEmail;
 use Ryssbowh\CraftEmails\services\AttachementsService;
@@ -33,6 +34,7 @@ use craft\events\RegisterTemplateRootsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\helpers\App;
+use craft\helpers\Queue;
 use craft\mail\Mailer;
 use craft\models\SystemMessage;
 use craft\records\Site;
@@ -100,6 +102,7 @@ class Emails extends Plugin
         $this->registerSiteChange();
         $this->registerBehaviors();
         $this->registerTriggers();
+        $this->registerPluginEvents();
 
         if (Craft::$app->request->getIsCpRequest()) {
             $this->registerCpRoutes();
@@ -139,6 +142,23 @@ class Emails extends Plugin
             return $item;
         }
         return null;
+    }
+
+    /**
+     * Register plugins events
+     *
+     * @since 1.4.8
+     */
+    protected function registerPluginEvents()
+    {
+        Event::on(Plugins::class, Plugins::EVENT_AFTER_INSTALL_PLUGIN, function () {
+            Emails::$plugin->emails->install();
+        });
+        Event::on(Plugins::class, Plugins::EVENT_AFTER_UNINSTALL_PLUGIN, function (Event $e) {
+            if ($e->plugin->handle !== 'emails') {
+                Queue::push(new ReinstallJob);
+            }
+        });
     }
 
     /**
@@ -251,7 +271,7 @@ class Emails extends Plugin
                 foreach (Emails::$plugin->mailchimp->lists as $list) {
                     $e->add(new MailchimpEmailSource([
                         'id' => $list['id']
-                    ]));   
+                    ]));
                 }
             }
         );
@@ -386,27 +406,25 @@ class Emails extends Plugin
     }
 
     /**
-     * After theme is installed, creates system emails.
-     */
-    protected function afterInstall()
-    {
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function () {
-                Emails::$plugin->emails->install();
-            }
-        );
-    }
-
-    /**
-     * Remove all config after uninstall
+     * @inheritdoc
      */
     protected function afterUninstall()
     {
-        Craft::$app->getProjectConfig()->remove('emails');
+        if (\Craft::$app->projectConfig->get(EmailsService::CONFIG_KEY, true)) {
+            Craft::$app->getProjectConfig()->remove(EmailsService::CONFIG_KEY);
+        }
         \Craft::$app->getDb()->createCommand()
             ->delete(Table::SYSTEMMESSAGES)
             ->execute();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function afterInstall()
+    {
+        if (!\Craft::$app->projectConfig->get('plugins.redactor', true)) {
+            \Craft::$app->plugins->installPlugin('redactor');
+        }
     }
 }

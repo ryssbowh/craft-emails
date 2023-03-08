@@ -26,9 +26,6 @@ class EmailerService extends Mailer
      */
     public function send($message)
     {
-        if (!$message->key) {
-            return parent::send($message);
-        }
         $mail = Emails::$plugin->emails->getByKey($message->key);
         if (!$mail) {
             return parent::send($message);
