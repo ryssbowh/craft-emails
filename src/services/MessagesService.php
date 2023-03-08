@@ -5,6 +5,8 @@ namespace Ryssbowh\CraftEmails\services;
 use Craft;
 use Ryssbowh\CraftEmails\Emails;
 use craft\base\Component;
+use craft\db\Query;
+use craft\db\Table;
 use craft\models\SystemMessage;
 use craft\records\SystemMessage as SystemMessageRecord;
 
@@ -18,30 +20,30 @@ class MessagesService extends Component
      */
     public function getAllSystemMessages(array $messages): array
     {
-        $systemKeys = [];
         $langId = \Craft::$app->getSites()->getPrimarySite()->language;
         foreach ($messages as $index => $message) {
             $record = SystemMessageRecord::find()->where([
                 'language' => $langId,
                 'key' => $message['key']
             ])->one();
-            $systemKeys[] = $message['key'];
             if ($record) {
                 $messages[$index]['subject'] = $record->subject;
                 $messages[$index]['body'] = $record->body;
             }
         }
-        $otherMessages = SystemMessageRecord::find()
-            ->where(['language' => $langId])
-            ->andWhere(['not in', 'key', $systemKeys])
-            ->all();
-        foreach ($otherMessages as $message) {
-            $email = Emails::$plugin->emails->getByKey($message->key);
+        foreach (Emails::$plugin->emails->getAllCustoms() as $email) {
+            $message = (new Query())
+                ->select(['subject', 'body'])
+                ->from([Table::SYSTEMMESSAGES])
+                ->where([
+                    'key' => $email->key,
+                    'language' => $langId
+                ])->one();
             $messages[] = [
-                'key' => $message->key,
+                'key' => $email->key,
                 'heading' => $email->heading,
-                'subject' => $message->subject,
-                'body' => $message->body,
+                'subject' => $message['subject'],
+                'body' => $message['body'],
             ];
         }
         return $messages;

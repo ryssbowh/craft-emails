@@ -48,7 +48,7 @@ class EmailsService extends Component
         if ($this->_emails === null) {
             $this->_emails = array_map(function ($email) {
                 return $email->toModel();
-            }, EmailRecord::find()->all());
+            }, EmailRecord::find()->orderBy('heading asc')->all());
         }
         return $this->_emails;
     }
@@ -86,13 +86,33 @@ class EmailsService extends Component
     }
 
     /**
+     * Get all custom emails
+     * 
+     * @return array
+     * @since  2.0.8
+     */
+    public function getAllCustoms(): array
+    {
+        $emails = [];
+        foreach ($this->all as $email) {
+            if (!$email->system) {
+                $emails[] = $email;
+            }
+        }
+        return $emails;
+    }
+
+    /**
      * Get email by key
      * 
-     * @param  string $key
+     * @param  ?string $key
      * @return ?Email
      */
-    public function getByKey(string $key): ?Email
+    public function getByKey(?string $key): ?Email
     {
+        if (!$key) {
+            return null;
+        }
         foreach ($this->all as $email) {
             if ($email->key == $key) {
                 return $email;
@@ -103,36 +123,39 @@ class EmailsService extends Component
 
     /**
      * Install system emails.
-     * Installation will be skipped if dataInstalled is true in project config
-     * to avoid duplication when applying config
+     * Add missing emails and delete orphans if they don't exist both in project config and db
      */
     public function install(): bool
     {
-        $dataInstalled = \Craft::$app->projectConfig->get('plugins.emails.dataInstalled', false) ?? false;
-        if ($dataInstalled) {
-            return false;
+        if (\Craft::$app->projectConfig->readOnly) {
+            return true;
         }
         $messages = \Craft::$app->systemMessages->getAllMessages();
+        $installed = [];
         foreach ($messages as $message) {
-            if ($message['key'] == 'test_email') {
-                continue;
+            if ($message['key'] != 'test_email') {
+                if (!$this->isInProjectConfig($message['key']) and !$this->getByKey($message['key'])) {
+                    $email = new Email([
+                        'key' => $message['key'],
+                        'heading' => $message['heading'],
+                        'system' => true
+                    ]);
+                    $this->save($email);
+                    $langId = \Craft::$app->getSites()->getPrimarySite()->language;
+                    $message = new SystemMessage([
+                        'key' => $email->key,
+                        'subject' => $message->subject,
+                        'body' => $message->body,
+                    ]);
+                    Emails::$plugin->messages->saveMessage($message, $langId);
+                }
+                $installed[] = $message['key'];
             }
-            $email = new Email([
-                'key' => $message['key'],
-                'heading' => $message['heading'],
-                'system' => true
-            ]);
-            $this->save($email);
-            $langId = \Craft::$app->getSites()->getPrimarySite()->language;
-            $message = new SystemMessage([
-                'key' => $email->key,
-                'subject' => $message->subject,
-                'body' => $message->body,
-            ]);
-            Emails::$plugin->messages->saveMessage($message, $langId);
         }
-        if (!\Craft::$app->projectConfig->readOnly) {
-            \Craft::$app->projectConfig->set('plugins.emails.dataInstalled', true, null, false);
+        foreach ($this->getAll() as $email) {
+            if (!in_array($email->key, $installed) and $this->isInProjectConfig($email->key)) {
+                $this->delete($email, true);
+            }
         }
         return true;
     }
@@ -410,5 +433,20 @@ class EmailsService extends Component
         if ($this->hasEventHandlers($type)) {
             $this->trigger($type, $event);
         }
+    }
+
+    /**
+     * Does an email key exist in project config files
+     * 
+     * @param  string  $key
+     * @return boolean
+     * @since  2.0.8
+     */
+    protected function isInProjectConfig(string $key): bool
+    {
+        $keys = array_map(function ($data) {
+            return $data['key'];
+        }, \Craft::$app->projectConfig->get(self::CONFIG_KEY, true) ?? []);
+        return in_array($key, $keys);
     }
 }

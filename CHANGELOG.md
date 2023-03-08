@@ -1,5 +1,16 @@
 # Web Puzzlers Emails Changelog
 
+## 2.0.8 - 2023-03-08
+
+### Fixed
+
+- Fixed emails not being sent when other plugins would not use `Mailer::composeFromKey()` [#10](https://github.com/ryssbowh/craft-emails/issues/10)
+- Make sure system messages registered by other plugins are properly installed and uninstalled [#10](https://github.com/ryssbowh/craft-emails/issues/10)
+- Order emails by heading on dashboard
+- Make sure Redactor is installed along with Emails
+- Ensure project config dateModified is not updated one more time when uninstalling this plugin
+- Added a helper on the settings to reinstall email in case of issues [#10](https://github.com/ryssbowh/craft-emails/issues/10)
+
 ## 2.0.7 - 2023-02-15
 
 ### Fixed
