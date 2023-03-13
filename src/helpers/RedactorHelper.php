@@ -37,7 +37,7 @@ class RedactorHelper
         ]);
         Event::trigger(RedactorField::class, RedactorField::EVENT_DEFINE_REDACTOR_CONFIG, $event);
         $redactorConfig = $event->config;
-        
+
         if (isset($redactorConfig['plugins'])) {
             foreach ($redactorConfig['plugins'] as $plugin) {
                 RedactorField::registerRedactorPlugin($plugin);
@@ -62,7 +62,7 @@ class RedactorHelper
 
     /**
      * Find any element URLs and swap them with ref tags
-     * 
+     *
      * @param  string $body
      * @return string
      */
@@ -70,7 +70,7 @@ class RedactorHelper
     {
         return preg_replace_callback(
             '/(href=|src=)([\'"])([^\'"\?#]*)(\?[^\'"\?#]+)?(#[^\'"\?#]+)?(?:#|%23)([\w\\\\]+)\:(\d+)(?:@(\d+))?(\:(?:transform\:)?' . HandleValidator::$handlePattern . ')?\2/',
-            function($matches) {
+            function ($matches) {
                 list(, $attr, $q, $url, $query, $hash, $elementType, $ref, $siteId, $transform) = array_pad($matches, 10, null);
 
                 // Create the ref tag, and make sure :url is in there
@@ -102,7 +102,7 @@ class RedactorHelper
 
     /**
      * Get volumes keys
-     * 
+     *
      * @return array
      */
     protected static function _getVolumeKeys(): array
@@ -111,39 +111,20 @@ class RedactorHelper
 
         $allVolumes = \Craft::$app->getVolumes()->getAllVolumes();
         $allowedVolumes = [];
+        $userService = \Craft::$app->getUser();
 
         foreach ($allVolumes as $volume) {
-            $allowedVolumes[] = $volume->uid;
+            if ($userService->checkPermission("viewAssets:$volume->uid")) {
+                $allowedVolumes[] = 'volume:' . $volume->uid;
+            }
         }
 
-        $criteria['volumeId'] = Db::idsByUids('{{%volumes}}', $allowedVolumes);
-
-        $folders = \Craft::$app->getAssets()->findFolders($criteria);
-
-        // Sort volumes in the same order as they are sorted in the CP
-        $sortedVolumeIds = \Craft::$app->getVolumes()->getAllVolumeIds();
-        $sortedVolumeIds = array_flip($sortedVolumeIds);
-
-        $volumeKeys = [];
-
-        usort($folders, function($a, $b) use ($sortedVolumeIds) {
-            // In case Temporary volumes ever make an appearance in RTF modals, sort them to the end of the list.
-            $aOrder = $sortedVolumeIds[$a->volumeId] ?? PHP_INT_MAX;
-            $bOrder = $sortedVolumeIds[$b->volumeId] ?? PHP_INT_MAX;
-
-            return $aOrder - $bOrder;
-        });
-
-        foreach ($folders as $folder) {
-            $volumeKeys[] = 'folder:' . $folder->uid;
-        }
-
-        return $volumeKeys;
+        return $allowedVolumes;
     }
 
     /**
      * Get available transforms
-     * 
+     *
      * @return array
      */
     protected static function _getTransforms(): array
@@ -163,7 +144,7 @@ class RedactorHelper
 
     /**
      * Link options
-     * 
+     *
      * @return array
      */
     protected static function _getLinkOptions(): array

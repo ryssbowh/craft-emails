@@ -18,7 +18,7 @@ class MessageBehavior extends Behavior
 {
     /**
      * Get email
-     * 
+     *
      * @return ?Email
      */
     public function getEmail(): ?Email
@@ -28,7 +28,7 @@ class MessageBehavior extends Behavior
 
     /**
      * Get parsed body
-     * 
+     *
      * @return string
      */
     public function getParsedBody()
@@ -38,7 +38,7 @@ class MessageBehavior extends Behavior
 
     /**
      * Get redactor input
-     * 
+     *
      * @param  ?string $redactorConfig
      * @return string
      */
@@ -67,9 +67,9 @@ class MessageBehavior extends Behavior
         if (!StringHelper::contains($this->owner->body, '{')) {
             return $this->owner->body;
         }
-        return preg_replace_callback('/(href=|src=)([\'"])(\{([\w\\\\]+\:\d+(?:@\d+)?\:(?:transform\:)?' . HandleValidator::$handlePattern . ')(?:\|\|[^\}]+)?\})(?:\?([^\'"#]*))?(#[^\'"#]+)?\2/', function($matches) {
+        return preg_replace_callback('/(href=|src=)([\'"])(\{([\w\\\\]+\:\d+(?:@\d+)?\:(?:transform\:)?' . HandleValidator::$handlePattern . ')(?:\|\|[^\}]+)?\})(?:\?([^\'"#]*))?(#[^\'"#]+)?\2/', function ($matches) {
             /** @var Element|null $element */
-            list ($fullMatch, $attr, $q, $refTag, $ref, $query, $fragment) = array_pad($matches, 7, null);
+            list($fullMatch, $attr, $q, $refTag, $ref, $query, $fragment) = array_pad($matches, 7, null);
             $parsed = \Craft::$app->getElements()->parseRefs($refTag);
             // If the ref tag couldn't be parsed, leave it alone
             if ($parsed === $refTag) {

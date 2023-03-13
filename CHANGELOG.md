@@ -1,5 +1,11 @@
 # Web Puzzlers Emails Changelog
 
+## 2.0.9 - 2023-03-13
+
+### Fixed
+
+- Fixed asset modal not showing any volumes [#11](https://github.com/ryssbowh/craft-emails/issues/11)
+
 ## 2.0.8 - 2023-03-08
 
 ### Fixed
