@@ -18,10 +18,7 @@
     elementType: 'craft\\elements\\Asset',
     viewMode: 'small',
     prevalidate: false,
-    canUpload: true,
-    modalSettings: {
-        hideSidebar: false
-    }
+    canUpload: false
 } %}
 {% for id, name in emailLocales %}
     {% set tabs = tabs|merge({
