@@ -1,5 +1,11 @@
 # Web Puzzlers Emails Changelog
 
+## 1.4.9 - 2023-04-13
+
+### Fixed
+
+- Disable upload on attachements field [#13](https://github.com/ryssbowh/craft-emails/issues/13)
+
 ## 1.4.8 - 2023-03-08
 
 ### Fixed
