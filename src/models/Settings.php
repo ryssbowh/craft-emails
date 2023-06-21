@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Ryssbowh\CraftEmails\models;
 
@@ -29,11 +29,12 @@ class Settings extends Model
 
     /**
      * Get all defined redactor configuration files
-     * 
+     *
      * @return array
      */
     public function getRedactorConfigOptions(): array
     {
+        $options = [];
         $path = \Craft::$app->getPath()->getConfigPath() . DIRECTORY_SEPARATOR . 'redactor';
         if (is_dir($path)) {
             $files = FileHelper::findFiles($path, [

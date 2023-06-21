@@ -1,5 +1,11 @@
 # Web Puzzlers Emails Changelog
 
+## 2.0.11 - 2023-06-21
+
+### Fixed
+
+- Fixed error when no redactor config are found [#15](https://github.com/ryssbowh/craft-emails/issues/15)
+
 ## 2.0.10 - 2023-04-13
 
 ### Fixed

@@ -15,5 +15,5 @@ Integrate to [Triggers](https://plugins.craftcms.com/triggers) and define a new 
 
 ## Documentation
 
-- [Plugin documentation](https://puzzlers.run/plugins/emails/2.x)
+- [Plugin documentation](https://www.webpuzzlers.co.uk/plugins/emails/2.x)
 - [Class reference](https://ryssbowh.github.io/docs/craft-emails/namespaces/ryssbowh-craftemails.html)
