@@ -3,8 +3,9 @@
 namespace Ryssbowh\CraftEmails\behaviors;
 
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\models\Email;
 use Ryssbowh\CraftEmails\helpers\RedactorHelper;
+use Ryssbowh\CraftEmails\models\Email;
+use craft\ckeditor\Field;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
@@ -18,7 +19,7 @@ class MessageBehavior extends Behavior
 {
     /**
      * Get email
-     * 
+     *
      * @return ?Email
      */
     public function getEmail(): ?Email
@@ -28,7 +29,7 @@ class MessageBehavior extends Behavior
 
     /**
      * Get parsed body
-     * 
+     *
      * @return string
      */
     public function getParsedBody()
@@ -38,7 +39,7 @@ class MessageBehavior extends Behavior
 
     /**
      * Get redactor input
-     * 
+     *
      * @param  ?string $redactorConfig
      * @return string
      */
@@ -62,14 +63,33 @@ class MessageBehavior extends Behavior
         ]);
     }
 
+    /**
+     * Get ckeditor input
+     *
+     * @since 1.5.0
+     * @param  string $ckeConfig
+     * @return string
+     */
+    public function ckeditorInput(string $ckeConfig): string
+    {
+        $config = [
+            'type' => Field::class,
+            'name' => 'Body',
+            'handle' => 'body',
+            'ckeConfig' => $ckeConfig
+        ];
+        $field = \Craft::$app->fields->createField($config);
+        return $field->getInputHtml($this->owner->body);
+    }
+
     public function _parsedBody()
     {
         if (!StringHelper::contains($this->owner->body, '{')) {
             return $this->owner->body;
         }
-        return preg_replace_callback('/(href=|src=)([\'"])(\{([\w\\\\]+\:\d+(?:@\d+)?\:(?:transform\:)?' . HandleValidator::$handlePattern . ')(?:\|\|[^\}]+)?\})(?:\?([^\'"#]*))?(#[^\'"#]+)?\2/', function($matches) {
+        return preg_replace_callback('/(href=|src=)([\'"])(\{([\w\\\\]+\:\d+(?:@\d+)?\:(?:transform\:)?' . HandleValidator::$handlePattern . ')(?:\|\|[^\}]+)?\})(?:\?([^\'"#]*))?(#[^\'"#]+)?\2/', function ($matches) {
             /** @var Element|null $element */
-            list ($fullMatch, $attr, $q, $refTag, $ref, $query, $fragment) = array_pad($matches, 7, null);
+            list($fullMatch, $attr, $q, $refTag, $ref, $query, $fragment) = array_pad($matches, 7, null);
             $parsed = \Craft::$app->getElements()->parseRefs($refTag);
             // If the ref tag couldn't be parsed, leave it alone
             if ($parsed === $refTag) {

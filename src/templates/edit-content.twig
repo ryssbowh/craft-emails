@@ -77,6 +77,13 @@
             id: 'field-body'
         }) }}
     {% else %}
+        {% if not settings.wysiwygEditorIsValid(settings.wysiwygEditor) %}
+            {% set fieldContent = '<p class="error">' ~ 'You must enable a wysiwyg editor in the settings'|t ~ '</p>' %}
+        {% elseif settings.wysiwygEditor == 'redactor' %}
+            {% set fieldContent = message.redactorInput(email.redactorConfig) %}
+        {% elseif settings.wysiwygEditor == 'ckeditor' %}
+            {% set fieldContent = message.ckeditorInput(email.ckeConfig) %}
+        {% endif %}
         {{ forms.field({
             label: 'Body'|t('emails'),
             name: 'body',
@@ -85,7 +92,7 @@
             required: true,
             errors: errors['body'] ?? [],
             id: 'field-body'
-            }, message.redactorInput(email.redactorConfig))
+            }, fieldContent)
         }}
     {% endif %}
     <div class="field last">

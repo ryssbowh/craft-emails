@@ -1,5 +1,18 @@
 # Web Puzzlers Emails Changelog
 
+## 1.5.0 - 2023-07-21
+
+> **Warning**
+> Composer dependency to `craftcms/redactor:^2.7` has been removed, if this wasn't in your composer.json the Redactor plugin will be removed, require it manually to be able to write Html emails : `composer require craftcms/redactor:^2.7`
+
+### Added
+
+- CKEditor support. Wysiwyg editors must now be installed separately and chosen in the plugin settings
+
+### Fixed
+
+- Fixed error when no redactor config are found [#15](https://github.com/ryssbowh/craft-emails/issues/15)
+
 ## 1.4.9 - 2023-04-13
 
 ### Fixed

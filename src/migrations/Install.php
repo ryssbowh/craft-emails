@@ -2,7 +2,7 @@
 
 namespace Ryssbowh\CraftEmails\migrations;
 
-use Craft; 
+use Craft;
 use craft\db\Migration;
 
 /**
@@ -21,6 +21,7 @@ class Install extends Migration
             'template' => $this->string(255),
             'system' => $this->boolean()->defaultValue(false),
             'redactorConfig' => $this->string(255),
+            'ckeConfig' => $this->string(255),
             'heading' => $this->string(255)->notNull(),
             'instructions' => $this->text(),
             'from' => $this->string(255),
@@ -88,7 +89,7 @@ class Install extends Migration
             'dateUpdated' => $this->dateTime()->notNull(),
             'uid' => $this->uid(),
         ]);
-        
+
         $this->addForeignKey('emails_logs_email_id_fk', '{{%emails_logs}}', ['email_id'], '{{%emails}}', ['id'], 'CASCADE', null);
         $this->addForeignKey('emails_shots_email_id_fk', '{{%emails_shots}}', ['email_id'], '{{%emails}}', ['id'], 'SET NULL', null);
         $this->addForeignKey('emails_shots_logs_shot_id_fk', '{{%emails_shots_logs}}', ['shot_id'], '{{%emails_shots}}', ['id'], 'CASCADE', null);
