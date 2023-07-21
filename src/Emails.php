@@ -61,7 +61,7 @@ class Emails extends Plugin
     /**
      * @inheritdoc
      */
-    public string $schemaVersion = '2.0.0';
+    public string $schemaVersion = '2.1.0';
 
     /**
      * @inheritdoc
@@ -114,7 +114,7 @@ class Emails extends Plugin
      */
     public function registerTwigVariables()
     {
-        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function(Event $e) {
+        Event::on(CraftVariable::class, CraftVariable::EVENT_INIT, function (Event $e) {
             $e->sender->set('emails', EmailsVariable::class);
         });
     }
@@ -156,7 +156,7 @@ class Emails extends Plugin
         });
         Event::on(Plugins::class, Plugins::EVENT_AFTER_UNINSTALL_PLUGIN, function (Event $e) {
             if ($e->plugin->handle !== 'emails') {
-                Queue::push(new ReinstallJob);
+                Queue::push(new ReinstallJob());
             }
         });
     }
@@ -169,9 +169,10 @@ class Emails extends Plugin
         Event::on(
             SystemMessage::class,
             SystemMessage::EVENT_DEFINE_BEHAVIORS,
-            function(DefineBehaviorsEvent $event) {
+            function (DefineBehaviorsEvent $event) {
                 $event->behaviors['messageBehavior'] = ['class' => MessageBehavior::class];
-            });
+            }
+        );
     }
 
     /**
@@ -203,7 +204,7 @@ class Emails extends Plugin
     {
         if (\Craft::$app->plugins->isPluginInstalled('triggers')) {
             Event::on(TriggersService::class, TriggersService::EVENT_REGISTER_ACTIONS, function (RegisterActionsEvent $e) {
-                $e->add(new SendEmail);
+                $e->add(new SendEmail());
             });
             Event::on(CpTriggersController::class, CpTriggersController::EVENT_EDIT_TRIGGER, function (Event $e) {
                 \Craft::$app->view->registerAssetBundle(CraftEmailsAssetBundle::class);
@@ -229,7 +230,7 @@ class Emails extends Plugin
     protected function registerSiteTemplates()
     {
         Event::on(
-            View::class, 
+            View::class,
             View::EVENT_REGISTER_SITE_TEMPLATE_ROOTS,
             function (RegisterTemplateRootsEvent $event) {
                 $event->roots[''][] = __DIR__ . '/templates/site';
@@ -262,7 +263,7 @@ class Emails extends Plugin
             EmailSourceService::class,
             EmailSourceService::EVENT_REGISTER,
             function (RegisterEmailSourcesEvent $e) {
-                $e->add(new AllUsersEmailSource);
+                $e->add(new AllUsersEmailSource());
                 foreach (\Craft::$app->userGroups->getAllGroups() as $group) {
                     $e->add(new UserGroupEmailSource([
                         'group' => $group
@@ -293,7 +294,8 @@ class Emails extends Plugin
         return Craft::$app->view->renderTemplate(
             'emails/settings',
             [
-                'settings' => $this->getSettings()
+                'settings' => $this->getSettings(),
+                'errors' => $this->getSettings()->errors
             ]
         );
     }
@@ -360,7 +362,7 @@ class Emails extends Plugin
      */
     protected function registerSystemMessages()
     {
-        Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function(RegisterEmailMessagesEvent $event) {
+        Event::on(SystemMessages::class, SystemMessages::EVENT_REGISTER_MESSAGES, function (RegisterEmailMessagesEvent $event) {
             $event->messages = Emails::$plugin->messages->getAllSystemMessages($event->messages);
         });
     }
@@ -371,11 +373,11 @@ class Emails extends Plugin
     protected function registerProjectConfig()
     {
         Craft::$app->projectConfig
-            ->onAdd(EmailsService::CONFIG_KEY.'.{uid}',      [$this->emails, 'handleChanged'])
-            ->onUpdate(EmailsService::CONFIG_KEY.'.{uid}',   [$this->emails, 'handleChanged'])
-            ->onRemove(EmailsService::CONFIG_KEY.'.{uid}',   [$this->emails, 'handleDeleted']);
+            ->onAdd(EmailsService::CONFIG_KEY.'.{uid}', [$this->emails, 'handleChanged'])
+            ->onUpdate(EmailsService::CONFIG_KEY.'.{uid}', [$this->emails, 'handleChanged'])
+            ->onRemove(EmailsService::CONFIG_KEY.'.{uid}', [$this->emails, 'handleDeleted']);
 
-        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $e) {
+        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function (RebuildConfigEvent $e) {
             Emails::$plugin->emails->rebuildConfig($e);
         });
     }
@@ -385,7 +387,7 @@ class Emails extends Plugin
      */
     protected function registerCpRoutes()
     {
-        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function(RegisterUrlRulesEvent $event) {
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_CP_URL_RULES, function (RegisterUrlRulesEvent $event) {
             $event->rules = array_merge($event->rules, [
                 'emails' => 'emails/cp-emails',
                 'emails/list' => 'emails/cp-emails',
@@ -419,15 +421,5 @@ class Emails extends Plugin
         \Craft::$app->getDb()->createCommand()
             ->delete(Table::SYSTEMMESSAGES)
             ->execute();
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function afterInstall(): void
-    {
-        if (!\Craft::$app->projectConfig->get('plugins.redactor', true)) {
-            \Craft::$app->plugins->installPlugin('redactor');
-        }
     }
 }

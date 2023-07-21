@@ -155,7 +155,7 @@ let Preview = Garnish.Base.extend({
             body: $('#field-body-field .redactor-in').html()
         };
         if (!$('#field-body-field .redactor-in').length) {
-            data.body = $('#field-body').val();
+            data.body = $('#body').val();
         }
         this.$iframeContainer.html('');
         axios.post(url, data).then((data) => {

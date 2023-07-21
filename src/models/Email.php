@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Ryssbowh\CraftEmails\models;
 
@@ -14,12 +14,13 @@ use craft\validators\TemplateValidator;
 
 class Email extends Model
 {
-    public $id;   
-    public $uid;   
+    public $id;
+    public $uid;
     public $dateCreated;
     public $dateUpdated;
     public $template = 'emails/template';
     public $redactorConfig = 'Default.json';
+    public $ckeConfig = '';
     public $system = false;
     public $plain = false;
     public $bcc;
@@ -41,7 +42,7 @@ class Email extends Model
         return [
             [['id', 'uid', 'dateCreated', 'dateUpdated', 'attachements'], 'safe'],
             [['key', 'heading', 'template'], 'required'],
-            [['key', 'heading', 'bcc', 'fromName', 'instructions'], 'string'],
+            [['key', 'heading', 'bcc', 'fromName', 'instructions', 'ckeConfig'], 'string'],
             [['saveLogs', 'system', 'plain'], 'boolean', 'trueValue' => true, 'falseValue' => false, 'skipOnEmpty' => false],
             ['template', 'string'],
             ['template', TemplateValidator::class],
@@ -93,7 +94,7 @@ class Email extends Model
 
     /**
      * Get project config
-     * 
+     *
      * @return array
      */
     public function getConfig(): array
@@ -102,7 +103,6 @@ class Email extends Model
             'key' => $this->key,
             'system' => (bool)$this->system,
             'instructions' => $this->instructions,
-            'redactorConfig' => $this->redactorConfig,
             'saveLogs' => (bool)$this->saveLogs,
             'plain' => (bool)$this->plain,
             'from' => $this->from,
@@ -114,12 +114,17 @@ class Email extends Model
             'fromName' => $this->fromName,
             'template' => $this->template,
         ];
+        if (Emails::$plugin->settings->wysiwygEditor == 'redactor') {
+            $config['redactorConfig'] = $this->redactorConfig;
+        } elseif (Emails::$plugin->settings->wysiwygEditor == 'ckeditor') {
+            $config['ckeConfig'] = $this->ckeConfig;
+        }
         return $config;
     }
 
     /**
      * Get the system message associated to that email, for a language.
-     * 
+     *
      * @param  string|null $language
      * @return ?SystemMessage
      */
@@ -130,7 +135,7 @@ class Email extends Model
 
     /**
      * Get all languages for which a message is defined
-     * 
+     *
      * @return array
      */
     public function getAllDefinedLanguages()

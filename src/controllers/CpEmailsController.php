@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Ryssbowh\CraftEmails\controllers;
 
@@ -31,7 +31,7 @@ class CpEmailsController extends Controller
 
     /**
      * Email dashboard action
-     * 
+     *
      * @return Response
      */
     public function actionIndex()
@@ -48,7 +48,7 @@ class CpEmailsController extends Controller
 
     /**
      * Preview action
-     * 
+     *
      * @param  int    $id
      * @param  string $langId
      * @return Reponse
@@ -109,21 +109,21 @@ class CpEmailsController extends Controller
 
     /**
      * Add email action
-     * 
+     *
      * @return Response
      */
     public function actionAdd()
     {
         $this->requirePermission('addDeleteEmailTemplates');
         return $this->renderTemplate('emails/add-email', [
-            'email' => new Email,
+            'email' => new Email(),
             'settings' => Emails::$plugin->settings
         ]);
     }
 
     /**
      * Action add translation
-     * 
+     *
      * @return Response
      */
     public function actionAddTranslation()
@@ -134,7 +134,7 @@ class CpEmailsController extends Controller
         $locale = \Craft::$app->i18n->getLocaleById($langId);
         if (Emails::$plugin->messages->addTranslation($key, $langId)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Translation for {lang} added.', ['lang' => $locale->displayName]));
-            return true;    
+            return true;
         }
         $this->response->setStatusCode(400);
         return $this->asJson([
@@ -144,7 +144,7 @@ class CpEmailsController extends Controller
 
     /**
      * Action delete translation
-     * 
+     *
      * @return Response
      */
     public function actionDeleteTranslation()
@@ -155,7 +155,7 @@ class CpEmailsController extends Controller
         $locale = \Craft::$app->i18n->getLocaleById($langId);
         if (Emails::$plugin->messages->deleteTranslation($key, $langId)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Translation for {lang} deleted.', ['lang' => $locale->displayName]));
-            return true;    
+            return true;
         }
         $this->response->setStatusCode(400);
         return $this->asJson([
@@ -181,7 +181,7 @@ class CpEmailsController extends Controller
 
     /**
      * Save email content action
-     * 
+     *
      * @return Response
      */
     public function actionSaveContent()
@@ -255,24 +255,24 @@ class CpEmailsController extends Controller
 
     /**
      * Save config action
-     * 
+     *
      * @return Response
      */
     public function actionSaveConfig()
     {
         $this->requirePermission('modifyEmailConfig');
         $new = true;
-        $email = new Email;
+        $email = new Email();
         if ($id = $this->request->getParam('id')) {
             $new = false;
             $email = Emails::$plugin->emails->getById($id);
         }
         $email->populateFromPost();
-        
+
         if (Emails::$plugin->emails->save($email)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Email saved.'));
             if ($new) {
-                return $this->redirect(UrlHelper::cpUrl('emails/edit/' . $email->id));    
+                return $this->redirect(UrlHelper::cpUrl('emails/edit/' . $email->id));
             }
             return $this->redirect(UrlHelper::cpUrl('emails'));
         }
@@ -285,7 +285,7 @@ class CpEmailsController extends Controller
 
     /**
      * Delete email logs action
-     * 
+     *
      * @return Response
      */
     public function actionDeleteLogs()
@@ -301,7 +301,7 @@ class CpEmailsController extends Controller
 
     /**
      * View email logs action
-     * 
+     *
      * @return Response
      */
     public function actionLogs(int $emailId)
@@ -320,7 +320,7 @@ class CpEmailsController extends Controller
 
     /**
      * View email action
-     * 
+     *
      * @return Response
      */
     public function actionView()
@@ -333,7 +333,7 @@ class CpEmailsController extends Controller
 
     /**
      * Resend email action
-     * 
+     *
      * @return Response
      */
     public function actionResend()
@@ -367,7 +367,7 @@ class CpEmailsController extends Controller
 
     /**
      * Edit system message
-     * 
+     *
      * @param  SystemMessage $message
      * @param  string        $langId
      * @return Response

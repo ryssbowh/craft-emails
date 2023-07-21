@@ -29,18 +29,18 @@ use yii\helpers\Markdown;
 
 class EmailsService extends Component
 {
-    const CONFIG_KEY = 'emails';
-    const EVENT_BEFORE_SAVE = 'before-save';
-    const EVENT_AFTER_SAVE = 'after-save';
-    const EVENT_BEFORE_APPLY_DELETE = 'before-apply-delete';
-    const EVENT_AFTER_DELETE = 'after-delete';
-    const EVENT_BEFORE_DELETE = 'before-delete';
+    public const CONFIG_KEY = 'emails';
+    public const EVENT_BEFORE_SAVE = 'before-save';
+    public const EVENT_AFTER_SAVE = 'after-save';
+    public const EVENT_BEFORE_APPLY_DELETE = 'before-apply-delete';
+    public const EVENT_AFTER_DELETE = 'after-delete';
+    public const EVENT_BEFORE_DELETE = 'before-delete';
 
     protected $_emails = null;
 
     /**
      * Get all emails
-     * 
+     *
      * @return array
      */
     public function getAll(): array
@@ -55,7 +55,7 @@ class EmailsService extends Component
 
     /**
      * Get Email by id
-     * 
+     *
      * @param  int  $id
      * @return Email
      */
@@ -71,7 +71,7 @@ class EmailsService extends Component
 
     /**
      * Get Email by uid
-     * 
+     *
      * @param  string  $uid
      * @return Email
      */
@@ -87,7 +87,7 @@ class EmailsService extends Component
 
     /**
      * Get all custom emails
-     * 
+     *
      * @return array
      * @since  2.0.8
      */
@@ -104,7 +104,7 @@ class EmailsService extends Component
 
     /**
      * Get email by key
-     * 
+     *
      * @param  ?string $key
      * @return ?Email
      */
@@ -162,7 +162,7 @@ class EmailsService extends Component
 
     /**
      * Get logs for an email
-     * 
+     *
      * @param  Email  $email
      * @param  string $order
      * @param  string $orderSide
@@ -187,7 +187,7 @@ class EmailsService extends Component
 
     /**
      * Get an email log by id
-     * 
+     *
      * @param  int    $id
      * @return EmailLog
      */
@@ -202,7 +202,7 @@ class EmailsService extends Component
 
     /**
      * Delete logs for an email
-     * 
+     *
      * @param  Email  $email
      * @param  array|null $ids
      */
@@ -220,7 +220,7 @@ class EmailsService extends Component
 
     /**
      * Resend an email from a log
-     * 
+     *
      * @param  EmailLog $log
      * @return bool
      */
@@ -242,7 +242,7 @@ class EmailsService extends Component
 
     /**
      * Save an email
-     * 
+     *
      * @param  Email        $email
      * @param  bool|boolean $validate
      * @return bool
@@ -267,7 +267,7 @@ class EmailsService extends Component
 
         $record = $this->getRecordByUid($uid);
         $email->setAttributes($record->getAttributes(), false);
-        
+
         $this->_emails = null;
 
         return true;
@@ -275,7 +275,7 @@ class EmailsService extends Component
 
     /**
      * Delete an email
-     * 
+     *
      * @param  Email $email
      * @param  bool  $force
      * @return bool
@@ -298,7 +298,7 @@ class EmailsService extends Component
 
     /**
      * Handle project config change
-     * 
+     *
      * @param  ConfigEvent $event
      */
     public function handleChanged(ConfigEvent $event)
@@ -316,14 +316,14 @@ class EmailsService extends Component
             $email->instructions = $data['instructions'];
             $email->system = $data['system'];
             $email->plain = $data['plain'];
-            $email->redactorConfig = $data['redactorConfig'];
+            $email->redactorConfig = $data['redactorConfig'] ?? '';
             $email->saveLogs = $data['saveLogs'];
             $email->from = $data['from'];
             $email->replyTo = $data['replyTo'];
             $email->bcc = $data['bcc'];
             $email->cc = $data['cc'];
             $email->heading = $data['heading'];
-            $email->instructions = $data['instructions'];
+            $email->ckeConfig = $data['ckeConfig'] ?? '';
             $email->fromName = $data['fromName'];
             $email->template = $data['template'];
 
@@ -344,7 +344,7 @@ class EmailsService extends Component
                 ]);
                 Emails::$plugin->messages->saveMessage($message, $langId);
             }
-            
+
             $transaction->commit();
         } catch (\Throwable $e) {
             $transaction->rollBack();
@@ -359,7 +359,7 @@ class EmailsService extends Component
 
     /**
      * Handle project config deletion
-     * 
+     *
      * @param  ConfigEvent $event
      */
     public function handleDeleted(ConfigEvent $event)
@@ -390,7 +390,7 @@ class EmailsService extends Component
 
     /**
      * Respond to rebuild config event
-     * 
+     *
      * @param RebuildConfigEvent $e
      */
     public function rebuildConfig(RebuildConfigEvent $e)
@@ -402,7 +402,7 @@ class EmailsService extends Component
 
     /**
      * Get record by id
-     * 
+     *
      * @param  string $uid
      * @return ?EmailRecord
      */
@@ -413,22 +413,22 @@ class EmailsService extends Component
 
     /**
      * Get record by uid
-     * 
+     *
      * @param  string $uid
      * @return EmailRecord
      */
     protected function getRecordByUid(string $uid): EmailRecord
     {
-        return EmailRecord::findOne(['uid' => $uid]) ?? new EmailRecord;
+        return EmailRecord::findOne(['uid' => $uid]) ?? new EmailRecord();
     }
 
     /**
      * Trigger an event
-     * 
+     *
      * @param string $type
      * @param Event  $event
      */
-    protected function triggerEvent(string $type, Event $event) 
+    protected function triggerEvent(string $type, Event $event)
     {
         if ($this->hasEventHandlers($type)) {
             $this->trigger($type, $event);
@@ -437,7 +437,7 @@ class EmailsService extends Component
 
     /**
      * Does an email key exist in project config files
-     * 
+     *
      * @param  string  $key
      * @return boolean
      * @since  2.0.8

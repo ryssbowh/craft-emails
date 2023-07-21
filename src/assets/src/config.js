@@ -10,18 +10,18 @@ Craft.Emails.EmailConfig = Garnish.Base.extend({
 
     initPlainToggle: function () {
         $('#lightswitch-plain-field .lightswitch').on('change', () => {
-            this.toggleRedactorField();
+            this.toggleWysiwygField();
         });
         if ($('#lightswitch-plain-field .lightswitch').hasClass('on')) {
-            $('#redactor-config-field').hide();
+            $('#wysiwyg-field').hide();
         }
     },
 
-    toggleRedactorField: function () {
+    toggleWysiwygField: function () {
         if ($('#lightswitch-plain-field .lightswitch').hasClass('on')) {
-            $('#redactor-config-field').slideUp('fast');
+            $('#wysiwyg-field').slideUp('fast');
         } else {
-            $('#redactor-config-field').slideDown('fast');
+            $('#wysiwyg-field').slideDown('fast');
         }
     }
 })

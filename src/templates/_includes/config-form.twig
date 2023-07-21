@@ -41,15 +41,55 @@
     instructions: "Do not use Html for this email's body"|t('emails'),
     id: 'lightswitch-plain'
 }) }}
-{{ forms.selectField({
-    label: 'Body Redactor config'|t('emails'),
-    instructions: 'You can save custom Redactor configs as .json files in config/redactor/'|t('emails'),
-    options: settings.redactorConfigOptions,
-    required: true,
-    errors: errors['redactorConfig'] ?? [],
-    name: 'redactorConfig',
-    id: 'redactor-config'
-}) }}
+<div id="wysiwyg-field">
+    {% if not settings.wysiwygEditorIsValid(settings.wysiwygEditor) %}
+        <p class="error">{{ 'You must enable a wysiwyg editor in the settings'|t }}</p>
+    {% elseif settings.wysiwygEditor == 'redactor' %}
+        {{ forms.selectField({
+            label: 'Body Redactor config'|t('emails'),
+            instructions: 'You can save custom Redactor configs as .json files in config/redactor/'|t('emails'),
+            options: settings.redactorConfigOptions,
+            value: email.redactorConfig,
+            required: true,
+            errors: errors['redactorConfig'] ?? [],
+            name: 'redactorConfig',
+            id: 'redactor-config'
+        }) }}
+    {% elseif settings.wysiwygEditor == 'ckeditor' %}
+        {% embed '_includes/forms/field.twig' with {
+            label: 'CKEditor Config'|t('ckeditor'),
+            id: 'cke-config',
+        } %}
+            {% block input %}
+                {% set addOptionFn %}
+                    (createOption, selectize) => {
+                        const slideout = new Craft.CpScreenSlideout('ckeditor/cke-configs/edit');
+                        slideout.on('submit', ev => {
+                            debugger;
+                            createOption({
+                                text: ev.data.name,
+                                value: ev.data.uid,
+                            });
+                        });
+                        slideout.on('close', () => {
+                            selectize.focus();
+                        });
+                    }
+                {% endset %}
+
+                {% include '_includes/forms/selectize' with {
+                    name: 'ckeConfig',
+                    options: plugin('ckeditor').ckeConfigs.getAll()|map(ckeConfig => {
+                        label: ckeConfig.name,
+                        value: ckeConfig.uid,
+                    }),
+                    addOptionLabel: 'Create a new config…'|t('ckeditor'),
+                    value: email.ckeConfig,
+                } %}
+            {% endblock %}
+        {% endembed %}
+    {% endif %}
+</div>
 {{ forms.textareaField({
     label: 'Instructions'|t('emails'),
     name: 'instructions',

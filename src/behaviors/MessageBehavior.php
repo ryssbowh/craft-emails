@@ -3,8 +3,9 @@
 namespace Ryssbowh\CraftEmails\behaviors;
 
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\models\Email;
 use Ryssbowh\CraftEmails\helpers\RedactorHelper;
+use Ryssbowh\CraftEmails\models\Email;
+use craft\ckeditor\Field;
 use craft\helpers\Html;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
@@ -60,6 +61,24 @@ class MessageBehavior extends Behavior
                 'normal'
             ],
         ]);
+    }
+
+    /**
+     * Get ckeditor input
+     *
+     * @param  string $ckeConfig
+     * @return string
+     */
+    public function ckeditorInput(string $ckeConfig): string
+    {
+        $config = [
+            'type' => Field::class,
+            'name' => 'Body',
+            'handle' => 'body',
+            'ckeConfig' => $ckeConfig
+        ];
+        $field = \Craft::$app->fields->createField($config);
+        return $field->getInputHtml($this->owner->body);
     }
 
     public function _parsedBody()

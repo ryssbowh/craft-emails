@@ -10,28 +10,89 @@ class Settings extends Model
     /**
      * @var string
      */
-    public $menuItemName;
+    public string $menuItemName = '';
 
     /**
      * @var boolean
      */
-    public $compressLogs = true;
+    public bool $compressLogs = true;
 
     /**
      * @var string
      */
-    public $mailchimpApiKey;
+    public string $mailchimpApiKey = '';
 
     /**
      * @var integer
      */
-    public $mailchimpCacheDuration = 60;
+    public int $mailchimpCacheDuration = 60;
+
+    /**
+     * @var string
+     */
+    public $wysiwygEditor;
+
+    /**
+     * @inheritDoc
+     */
+    public function init(): void
+    {
+        if ($this->wysiwygEditor === null) {
+            if (\Craft::$app->plugins->isPluginEnabled('redactor')) {
+                $this->wysiwygEditor = 'redactor';
+            } elseif (\Craft::$app->plugins->isPluginEnabled('ckeditor')) {
+                $this->wysiwygEditor = 'ckeditor';
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function defineRules(): array
+    {
+        return [
+            [['menuItemName', 'mailchimpApiKey', 'wysiwygEditor'], 'string'],
+            ['wysiwygEditor', 'required'],
+            ['compressLogs', 'boolean'],
+            ['mailchimpCacheDuration', 'integer']
+        ];
+    }
 
     /**
      * Get all defined redactor configuration files
      *
      * @return array
      */
+    public function getWysiwygOptions(): array
+    {
+        $options = ['' => 'Select'];
+        if (\Craft::$app->plugins->isPluginEnabled('redactor')) {
+            $options['redactor'] = 'Redactor';
+        }
+        if (\Craft::$app->plugins->isPluginEnabled('ckeditor')) {
+            $options['ckeditor'] = 'CKEditor';
+        }
+        return $options;
+    }
+
+    /**
+     * Is a wysiwyg editor valid
+     *
+     * @param  string $editor
+     * @return boolean
+     */
+    public function wysiwygEditorIsValid(?string $editor): bool
+    {
+        if ($editor == 'redactor') {
+            return \Craft::$app->plugins->isPluginEnabled('redactor');
+        }
+        if ($editor == 'ckeditor') {
+            return \Craft::$app->plugins->isPluginEnabled('ckeditor');
+        }
+        return false;
+    }
+
     public function getRedactorConfigOptions(): array
     {
         $options = [];
