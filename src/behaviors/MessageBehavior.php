@@ -66,6 +66,7 @@ class MessageBehavior extends Behavior
     /**
      * Get ckeditor input
      *
+     * @since 2.1.0
      * @param  string $ckeConfig
      * @return string
      */

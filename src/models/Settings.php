@@ -62,6 +62,7 @@ class Settings extends Model
     /**
      * Get all defined redactor configuration files
      *
+     * @since 2.1.0
      * @return array
      */
     public function getWysiwygOptions(): array
@@ -79,6 +80,7 @@ class Settings extends Model
     /**
      * Is a wysiwyg editor valid
      *
+     * @since 2.1.0
      * @param  string $editor
      * @return boolean
      */
