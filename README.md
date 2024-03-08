@@ -1,4 +1,6 @@
-# Emails for Craft CMS 4
+# Emails for Craft CMS 5
+
+**This version is unreleased**
 
 Take control over your emails in the CMS, modify and translate content, create new emails and mailing shots and keep track of the emails sent by your website.
 
@@ -6,12 +8,13 @@ Integrate to [Triggers](https://plugins.craftcms.com/triggers) and define a new 
 
 ## Requirements
 
-- Craft ^4.0
-- [Redactor plugin](https://plugins.craftcms.com/redactor), this is automatically installed by composer but doesn't need to be installed/enabled in the cms
+- Craft ^5.0
+
+You will need Ckeditor to write HTML emails, this needs to be done manually
 
 ## Installation
 
-`composer require ryssbowh/craft-emails:^2.0`
+`composer require ryssbowh/craft-emails:^3.0`
 
 ## Documentation
 
