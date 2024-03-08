@@ -5,14 +5,15 @@ namespace Ryssbowh\CraftEmails\services;
 use Craft;
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\events\EmailEvent;
+use Ryssbowh\CraftEmails\exceptions\EmailException;
+use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use Ryssbowh\CraftEmails\models\Email;
 use Ryssbowh\CraftEmails\models\EmailLog;
 use Ryssbowh\CraftEmails\records\Email as EmailRecord;
 use Ryssbowh\CraftEmails\records\EmailAttachement;
 use Ryssbowh\CraftEmails\records\EmailLog as EmailLogRecord;
-use Ryssbowh\CraftEmails\exceptions\EmailException;
-use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use craft\base\Component;
+use craft\ckeditor\Plugin;
 use craft\db\Table;
 use craft\elements\Asset;
 use craft\events\ConfigEvent;
@@ -132,20 +133,25 @@ class EmailsService extends Component
         }
         $messages = \Craft::$app->systemMessages->getAllMessages();
         $installed = [];
+        $ckeConfig = null;
+        if (\Craft::$app->plugins->isPluginEnabled('ckeditor')) {
+            $ckeConfig = Plugin::getInstance()->ckeConfigs->getAll()[0] ?? null;
+        }
         foreach ($messages as $message) {
             if ($message['key'] != 'test_email') {
                 if (!$this->isInProjectConfig($message['key']) and !$this->getByKey($message['key'])) {
                     $email = new Email([
                         'key' => $message['key'],
                         'heading' => $message['heading'],
-                        'system' => true
+                        'system' => true,
+                        'ckeConfig' => $ckeConfig->uid
                     ]);
                     $this->save($email);
                     $langId = \Craft::$app->getSites()->getPrimarySite()->language;
                     $message = new SystemMessage([
                         'key' => $email->key,
                         'subject' => $message->subject,
-                        'body' => $message->body,
+                        'body' => '<p>' . preg_replace("/[\n]+/", '</p><p>', $message->body) . '</p>',
                     ]);
                     Emails::$plugin->messages->saveMessage($message, $langId);
                 }
@@ -316,7 +322,6 @@ class EmailsService extends Component
             $email->instructions = $data['instructions'];
             $email->system = $data['system'];
             $email->plain = $data['plain'];
-            $email->redactorConfig = $data['redactorConfig'] ?? '';
             $email->saveLogs = $data['saveLogs'];
             $email->from = $data['from'];
             $email->replyTo = $data['replyTo'];

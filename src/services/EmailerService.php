@@ -17,7 +17,7 @@ use yii\mail\MailEvent;
 
 class EmailerService extends Mailer
 {
-    const EVENT_BEFORE_PREP = 'beforePrep';
+    public const EVENT_BEFORE_PREP = 'beforePrep';
 
     public $parentMailer;
 
@@ -127,7 +127,7 @@ class EmailerService extends Mailer
     /**
      * Resend a message without going through the process of rebuilding html and all other parameters
      * in case those parameters have changed since the email was sent.
-     * 
+     *
      * @param  string $key
      * @param  string $subject
      * @param  string $textBody
@@ -184,9 +184,9 @@ class EmailerService extends Mailer
                 $record->save(false);
                 if ($record->saveLogs) {
                     if ($mail->plain) {
-                        $body = $message->getTextBody();
+                        $body = $message->getSymfonyEmail()->getTextBody();
                     } else {
-                        $body = $message->getHtmlBody();
+                        $body = $message->getSymfonyEmail()->getHtmlBody();
                     }
                     if ($attachements === null) {
                         $attachements = Emails::$plugin->attachements->get($message->key, $message->language);
@@ -214,7 +214,7 @@ class EmailerService extends Mailer
 
     /**
      * Do the actual sending
-     * 
+     *
      * @param  Message $message
      * @return bool
      */

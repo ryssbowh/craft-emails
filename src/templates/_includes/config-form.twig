@@ -42,20 +42,9 @@
     id: 'lightswitch-plain'
 }) }}
 <div id="wysiwyg-field">
-    {% if not settings.wysiwygEditorIsValid(settings.wysiwygEditor) %}
-        <p class="error">{{ 'You must enable a wysiwyg editor in the settings'|t }}</p>
-    {% elseif settings.wysiwygEditor == 'redactor' %}
-        {{ forms.selectField({
-            label: 'Body Redactor config'|t('emails'),
-            instructions: 'You can save custom Redactor configs as .json files in config/redactor/'|t('emails'),
-            options: settings.redactorConfigOptions,
-            value: email.redactorConfig,
-            required: true,
-            errors: errors['redactorConfig'] ?? [],
-            name: 'redactorConfig',
-            id: 'redactor-config'
-        }) }}
-    {% elseif settings.wysiwygEditor == 'ckeditor' %}
+    {% if not craft.app.plugins.isPluginEnabled('ckeditor') %}
+        <p class="error">{{ 'You must install ckeditor in the settings'|t('emails') }}</p>
+    {% else %}
         {% embed '_includes/forms/field.twig' with {
             label: 'CKEditor Config'|t('ckeditor'),
             id: 'cke-config',

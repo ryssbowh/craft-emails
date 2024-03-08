@@ -26,11 +26,17 @@
 {% set title = shot.id ? 'Edit email shot'|t('emails') : 'New email shot'|t('emails') %}
 {% set selectedSubnavItem = 'shots' %}
 
+{% set crumbs = {
+    emails: {
+        url: 'emails',
+        label: 'Emails'|t('emails')
+    }
+} %}
+
 {% block submitButton %}
 {% endblock %}
 
 {% block toolbar %}
-    <a href="{{ url('emails/shots') }}" class="btn">{{ 'Back'|t('emails') }}</a>
     <button type="submit" class="btn submit">{{ 'Save'|t('emails') }}</button>
 {% endblock %}
 

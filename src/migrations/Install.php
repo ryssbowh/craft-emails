@@ -20,7 +20,6 @@ class Install extends Migration
             'key' => $this->string(255)->notNull(),
             'template' => $this->string(255),
             'system' => $this->boolean()->defaultValue(false),
-            'redactorConfig' => $this->string(255),
             'ckeConfig' => $this->string(255),
             'heading' => $this->string(255)->notNull(),
             'instructions' => $this->string(500)->defaultValue(''),

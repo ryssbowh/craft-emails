@@ -61,7 +61,7 @@ class Emails extends Plugin
     /**
      * @inheritdoc
      */
-    public string $schemaVersion = '2.1.0';
+    public string $schemaVersion = '3.0.0';
 
     /**
      * @inheritdoc
@@ -307,7 +307,7 @@ class Emails extends Plugin
     {
         Event::on(
             Utilities::class,
-            Utilities::EVENT_REGISTER_UTILITY_TYPES,
+            Utilities::EVENT_REGISTER_UTILITIES,
             function (RegisterComponentTypesEvent $event) {
                 foreach ($event->types as $index => $type) {
                     if ($type == SystemMessagesUtility::class) {

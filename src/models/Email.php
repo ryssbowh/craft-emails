@@ -19,7 +19,6 @@ class Email extends Model
     public $dateCreated;
     public $dateUpdated;
     public $template = 'emails/template';
-    public $redactorConfig = 'Default.json';
     public $ckeConfig = '';
     public $system = false;
     public $plain = false;
@@ -54,7 +53,6 @@ class Email extends Model
                 }
             }],
             [['sent'], 'integer'],
-            ['redactorConfig', 'in', 'range' => array_keys(Emails::$plugin->settings->redactorConfigOptions)],
             [['cc', 'bcc'], function ($attribute) {
                 foreach (EmailHelper::parseEmails($this->$attribute) as $email) {
                     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -99,7 +97,7 @@ class Email extends Model
      */
     public function getConfig(): array
     {
-        $config = [
+        return [
             'key' => $this->key,
             'system' => (bool)$this->system,
             'instructions' => $this->instructions,
@@ -113,13 +111,8 @@ class Email extends Model
             'instructions' => $this->instructions,
             'fromName' => $this->fromName,
             'template' => $this->template,
+            'ckeConfig' => $this->ckeConfig
         ];
-        if (Emails::$plugin->settings->wysiwygEditor == 'redactor') {
-            $config['redactorConfig'] = $this->redactorConfig;
-        } elseif (Emails::$plugin->settings->wysiwygEditor == 'ckeditor') {
-            $config['ckeConfig'] = $this->ckeConfig;
-        }
-        return $config;
     }
 
     /**

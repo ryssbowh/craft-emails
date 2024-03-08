@@ -152,11 +152,8 @@ let Preview = Garnish.Base.extend({
         var url = Craft.getUrl('emails/preview/' + this.emailId + '/' + this.langId);
         var data = {
             subject: $('#field-subject').val(),
-            body: $('#field-body-field .redactor-in').html()
+            body: $('#field-body-field .ck-content').html()
         };
-        if (!$('#field-body-field .redactor-in').length) {
-            data.body = $('#body').val();
-        }
         this.$iframeContainer.html('');
         axios.post(url, data).then((data) => {
             if (data.data.subjectError) {

@@ -3,7 +3,6 @@
 namespace Ryssbowh\CraftEmails\controllers;
 
 use Ryssbowh\CraftEmails\Emails;
-use Ryssbowh\CraftEmails\helpers\RedactorHelper;
 use Ryssbowh\CraftEmails\models\Email;
 use Ryssbowh\CraftEmails\models\EmailShot;
 use Ryssbowh\CraftThemes\assets\DisplayAssets;
@@ -198,7 +197,7 @@ class CpEmailsController extends Controller
         $message = new SystemMessage([
             'key' => $this->request->getRequiredParam('key'),
             'subject' => $this->request->getRequiredParam('subject'),
-            'body' => $email->plain ? $body : RedactorHelper::serializeBody($body)
+            'body' => $body
         ]);
         if (Emails::$plugin->messages->saveMessage($message, $langId, $attachements)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Content saved'));

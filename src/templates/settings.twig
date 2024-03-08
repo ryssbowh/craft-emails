@@ -1,25 +1,13 @@
 {% import "_includes/forms" as forms %}
 
 {{
-    forms.selectField({
-        label: 'Wysiwyg editor for Html emails'|t('emails'),
-        instructions: 'Both Redactor and CKEditor are supported and need to be installed separately'|t('emails'),
-        name: 'wysiwygEditor',
-        value: settings.wysiwygEditor,
-        options: settings.getWysiwygOptions(),
-        errors: errors['wysiwygEditor'] ?? [],
-        required: true,
-        fieldClass: 'first',
-    })
-}}
-
-{{
     forms.textField({
         name: 'menuItemName',
         value: settings.menuItemName ?? 'Emails'|t('emails'),
         errors: errors['menuItemName'] ?? [],
         placeholder: 'Emails',
-        label: 'Menu item label'
+        label: 'Menu item label',
+        fieldClass: 'first'
     })
 }}
 
