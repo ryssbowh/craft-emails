@@ -79,9 +79,8 @@
                 </tbody>
             </table>
         </div>
-    {% else %}
-        <p>{{ 'No email shots found'|t('emails') }}</p>
     {% endif %}
+    <p class="no-shots {% if shots|length %}hidden{% endif %}">{{ 'No email shots found'|t('emails') }}</p>
     <div id="emails-modal" class="modal elementselectormodal" style="display:none">
         <div class="body">
             <div class="content">

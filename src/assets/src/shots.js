@@ -54,10 +54,10 @@ Craft.Emails.Shots = Garnish.Base.extend({
                     if (data.message) {
                         Craft.cp.displayNotice(data.message);
                     }
-                    button.parent().parent().parent().remove();
+                    button.closest('tr').remove();
                     if ($('#shots-table-view tbody tr').length == 0) {
                         $('#shots-table-view').remove();
-                        $('#content').append('<p>' + Craft.t('emails', "No email shots found") + '</p>');
+                        $('#content .no-shots').removeClass('hidden');
                     }
                 });
             }

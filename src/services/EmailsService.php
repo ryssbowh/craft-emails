@@ -144,7 +144,7 @@ class EmailsService extends Component
                         'key' => $message['key'],
                         'heading' => $message['heading'],
                         'system' => true,
-                        'ckeConfig' => $ckeConfig->uid
+                        'ckeConfig' => $ckeConfig ? $ckeConfig->uid : null
                     ]);
                     $this->save($email);
                     $langId = \Craft::$app->getSites()->getPrimarySite()->language;
