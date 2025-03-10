@@ -16,7 +16,7 @@
     elementType: 'craft\\elements\\Asset',
     viewMode: 'small',
     prevalidate: false,
-    canUpload: false
+    sortable: false
 } %}
 
 {% for id, name in emailLocales %}
@@ -96,14 +96,17 @@
             <label>{{ 'Attachements'|t('emails') }}</label>
         </div>
         <div id="{{ id }}" class="elementselect">
-            <div class="elements">
+            <ul class="elements chips chips-small">
                 {% for element in attachements %}
-                    {% include "_elements/element" with {
-                        context: 'field',
-                        size: 'small'
-                    } %}
+                    <li>
+                        {{ elementChip(element, {
+                            size: 'small',
+                            showActionMenu: true,
+                            context: 'field',
+                        }) }}
+                    </li>
                 {% endfor %}
-            </div>
+            </ul>
             <div class="flex">
                 {{ tag('button', {
                     type: 'button',
