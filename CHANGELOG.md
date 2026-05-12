@@ -1,5 +1,14 @@
 # Web Puzzlers Emails Changelog
 
+## 4.0.0 - 2026-05-12
+
+> **Warning**
+> If you have upgraded to Ckeditor 5, you will need to resave the config for each email
+
+### Changed
+
+- Refactored how ckeditor config is handled to support both versions 4 & 5
+
 ## 3.0.1 - 2025-03-10
 
 ### Fixed

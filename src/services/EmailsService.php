@@ -6,27 +6,19 @@ use Craft;
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\events\EmailEvent;
 use Ryssbowh\CraftEmails\exceptions\EmailException;
-use Ryssbowh\CraftEmails\helpers\EmailHelper;
 use Ryssbowh\CraftEmails\models\Email;
 use Ryssbowh\CraftEmails\models\EmailLog;
 use Ryssbowh\CraftEmails\records\Email as EmailRecord;
-use Ryssbowh\CraftEmails\records\EmailAttachement;
 use Ryssbowh\CraftEmails\records\EmailLog as EmailLogRecord;
 use craft\base\Component;
 use craft\ckeditor\Plugin;
 use craft\db\Table;
-use craft\elements\Asset;
 use craft\events\ConfigEvent;
 use craft\events\RebuildConfigEvent;
 use craft\helpers\StringHelper;
-use craft\helpers\Template;
-use craft\mail\Message;
 use craft\models\SystemMessage;
-use craft\records\SystemMessage as SystemMessageRecord;
-use craft\web\View;
 use yii\base\Event;
 use yii\data\Pagination;
-use yii\helpers\Markdown;
 
 class EmailsService extends Component
 {
@@ -134,8 +126,14 @@ class EmailsService extends Component
         $messages = \Craft::$app->systemMessages->getAllMessages();
         $installed = [];
         $ckeConfig = null;
+        $ckeConfigJson = [];
         if (\Craft::$app->plugins->isPluginEnabled('ckeditor')) {
-            $ckeConfig = Plugin::getInstance()->ckeConfigs->getAll()[0] ?? null;
+            if (Emails::$plugin->ckeditor->isVersionAtLeast5()) {
+                $ckeConfigJson = Emails::$plugin->ckeditor->baseConfig();
+            } else {
+                $ckeConfig = Plugin::getInstance()->ckeConfigs->getAll()[0] ?? null;
+                $ckeConfig = $ckeConfig ? $ckeConfig->uid : null;
+            }
         }
         foreach ($messages as $message) {
             if ($message['key'] != 'test_email') {
@@ -144,7 +142,8 @@ class EmailsService extends Component
                         'key' => $message['key'],
                         'heading' => $message['heading'],
                         'system' => true,
-                        'ckeConfig' => $ckeConfig ? $ckeConfig->uid : null
+                        'ckeConfig' => $ckeConfig,
+                        'ckeConfigJson' => $ckeConfigJson,
                     ]);
                     $this->save($email);
                     $langId = \Craft::$app->getSites()->getPrimarySite()->language;
@@ -176,15 +175,15 @@ class EmailsService extends Component
      */
     public function getLogs(Email $email, string $order = 'dateCreated', string $orderSide = 'desc'): array
     {
-        $query = EmailLogRecord::find()->where(['email_id' => $email->id])->orderBy([$order => $orderSide == 'asc' ? SORT_ASC : SORT_DESC]);
+        $query = EmailLogRecord::find()
+            ->where(['email_id' => $email->id])
+            ->orderBy([$order => $orderSide == 'asc' ? SORT_ASC : SORT_DESC]);
         $countQuery = clone $query;
         $pages = new Pagination([
             'defaultPageSize' => 10,
-            'totalCount' => $countQuery->count()
+            'totalCount' => $countQuery->count(),
         ]);
-        $models = $query->offset($pages->offset)
-            ->limit($pages->limit)
-            ->all();
+        $models = $query->offset($pages->offset)->limit($pages->limit)->all();
         $models = array_map(function ($record) {
             return $record->toModel();
         }, $models);
@@ -199,7 +198,9 @@ class EmailsService extends Component
      */
     public function getLogById(int $id): EmailLog
     {
-        $log = EmailLogRecord::find()->where(['id' => $id])->one();
+        $log = EmailLogRecord::find()
+            ->where(['id' => $id])
+            ->one();
         if (!$log) {
             throw EmailException::noLogId($id);
         }
@@ -215,9 +216,14 @@ class EmailsService extends Component
     public function deleteLogs(Email $email, ?array $ids = null)
     {
         if (is_array($ids)) {
-            $logs = EmailLogRecord::find()->where(['in', 'id', $ids])->andWhere(['email_id' => $email->id])->all();
+            $logs = EmailLogRecord::find()
+                ->where(['in', 'id', $ids])
+                ->andWhere(['email_id' => $email->id])
+                ->all();
         } else {
-            $logs = EmailLogRecord::find()->where(['email_id' => $email->id])->all();
+            $logs = EmailLogRecord::find()
+                ->where(['email_id' => $email->id])
+                ->all();
         }
         foreach ($logs as $log) {
             $log->delete();
@@ -232,18 +238,7 @@ class EmailsService extends Component
      */
     public function resend(EmailLog $log): bool
     {
-        return \Craft::$app->mailer->resend(
-            $log->email->key,
-            $log->subject,
-            $log->textBody,
-            $log->body,
-            $log->from,
-            $log->replyTo,
-            $log->bcc,
-            $log->cc,
-            $log->to,
-            $log->attachements
-        );
+        return \Craft::$app->mailer->resend($log->email->key, $log->subject, $log->textBody, $log->body, $log->from, $log->replyTo, $log->bcc, $log->cc, $log->to, $log->attachements);
     }
 
     /**
@@ -261,10 +256,13 @@ class EmailsService extends Component
         $isNew = !$email->id;
         $uid = $isNew ? StringHelper::UUID() : $email->uid;
 
-        $this->triggerEvent(self::EVENT_BEFORE_SAVE, new EmailEvent([
-            'email' => $email,
-            'isNew' => $isNew
-        ]));
+        $this->triggerEvent(
+            self::EVENT_BEFORE_SAVE,
+            new EmailEvent([
+                'email' => $email,
+                'isNew' => $isNew,
+            ]),
+        );
 
         $projectConfig = \Craft::$app->getProjectConfig();
         $configData = $email->getConfig();
@@ -291,9 +289,12 @@ class EmailsService extends Component
         if ($email->system and !$force) {
             throw EmailException::system($email->id);
         }
-        $this->triggerEvent(self::EVENT_BEFORE_DELETE, new EmailEvent([
-            'email' => $email
-        ]));
+        $this->triggerEvent(
+            self::EVENT_BEFORE_DELETE,
+            new EmailEvent([
+                'email' => $email,
+            ]),
+        );
 
         \Craft::$app->getProjectConfig()->remove(self::CONFIG_KEY . '.' . $email->uid);
 
@@ -328,12 +329,15 @@ class EmailsService extends Component
             $email->bcc = $data['bcc'];
             $email->cc = $data['cc'];
             $email->heading = $data['heading'];
-            $email->ckeConfig = $data['ckeConfig'] ?? '';
+            $email->ckeConfig = $data['ckeConfig'];
+            $email->ckeConfigJson = json_encode($data['ckeConfigJson'] ?? []);
             $email->fromName = $data['fromName'];
             $email->template = $data['template'];
 
             if (isset($email->getDirtyAttributes()['key'])) {
-                \Craft::$app->getDb()->createCommand()
+                \Craft::$app
+                    ->getDb()
+                    ->createCommand()
                     ->update(Table::SYSTEMMESSAGES, ['key' => $email->key], ['key' => $email->getOldAttribute('key')])
                     ->execute();
             }
@@ -345,7 +349,7 @@ class EmailsService extends Component
                 $message = new SystemMessage([
                     'key' => $email->key,
                     'subject' => 'Subject here',
-                    'body' => '<p>Body here</p>'
+                    'body' => '<p>Body here</p>',
                 ]);
                 Emails::$plugin->messages->saveMessage($message, $langId);
             }
@@ -356,10 +360,13 @@ class EmailsService extends Component
             throw $e;
         }
 
-        $this->triggerEvent(self::EVENT_AFTER_SAVE, new EmailEvent([
-            'email' => $email,
-            'isNew' => $isNew,
-        ]));
+        $this->triggerEvent(
+            self::EVENT_AFTER_SAVE,
+            new EmailEvent([
+                'email' => $email,
+                'isNew' => $isNew,
+            ]),
+        );
     }
 
     /**
@@ -376,21 +383,31 @@ class EmailsService extends Component
             return;
         }
 
-        $this->triggerEvent(self::EVENT_BEFORE_APPLY_DELETE, new EmailEvent([
-            'email' => $email
-        ]));
+        $this->triggerEvent(
+            self::EVENT_BEFORE_APPLY_DELETE,
+            new EmailEvent([
+                'email' => $email,
+            ]),
+        );
 
-        \Craft::$app->getDb()->createCommand()
+        \Craft::$app
+            ->getDb()
+            ->createCommand()
             ->delete(EmailRecord::tableName(), ['uid' => $uid])
             ->execute();
         Emails::$plugin->attachements->delete($email->key);
-        \Craft::$app->getDb()->createCommand()
+        \Craft::$app
+            ->getDb()
+            ->createCommand()
             ->delete(Table::SYSTEMMESSAGES, ['key' => $email->key])
             ->execute();
 
-        $this->triggerEvent(self::EVENT_AFTER_DELETE, new EmailEvent([
-            'email' => $email
-        ]));
+        $this->triggerEvent(
+            self::EVENT_AFTER_DELETE,
+            new EmailEvent([
+                'email' => $email,
+            ]),
+        );
     }
 
     /**

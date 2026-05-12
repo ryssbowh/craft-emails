@@ -21,6 +21,7 @@ class Install extends Migration
             'template' => $this->string(255),
             'system' => $this->boolean()->defaultValue(false),
             'ckeConfig' => $this->string(255),
+            'ckeConfigJson' => $this->text(),
             'heading' => $this->string(255)->notNull(),
             'instructions' => $this->string(500)->defaultValue(''),
             'from' => $this->string(255),

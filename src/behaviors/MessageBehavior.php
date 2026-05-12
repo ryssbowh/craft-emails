@@ -6,12 +6,7 @@ use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\models\Email;
 use craft\ckeditor\Field;
 use craft\ckeditor\Plugin;
-use craft\helpers\Html;
-use craft\helpers\StringHelper;
-use craft\helpers\UrlHelper;
-use craft\validators\HandleValidator;
 use yii\base\Behavior;
-use yii\helpers\Json;
 
 class MessageBehavior extends Behavior
 {
@@ -39,25 +34,29 @@ class MessageBehavior extends Behavior
      * Get ckeditor input
      *
      * @since 2.1.0
-     * @param  string $ckeConfig
+     * @param  Email $email
      * @return string
      */
-    public function ckeditorInput(?string $ckeConfig): string
+    public function ckeditorInput(Email $email): string
     {
         if (!\Craft::$app->plugins->isPluginEnabled('ckeditor')) {
             return '<p class="error">' . \Craft::t('emails', 'You must install ckeditor in the settings') . '</p>';
-        }
-        try {
-            Plugin::getInstance()->ckeConfigs->getByUid($ckeConfig);
-        } catch (\Exception $e) {
-            return '<p class="error">' . \Craft::t('emails', 'The ckeditor config is not valid for this email') . '</p>';
         }
         $config = [
             'type' => Field::class,
             'name' => 'Body',
             'handle' => 'body',
-            'ckeConfig' => $ckeConfig
         ];
+        if (Emails::$plugin->ckeditor->isVersionAtLeast5()) {
+            $config = array_merge($config, $email->ckeConfigJson);
+        } else {
+            try {
+                Plugin::getInstance()->ckeConfigs->getByUid($email->ckeConfig ?? '');
+                $config['ckeConfig'] = $email->ckeConfig;
+            } catch (\Exception $e) {
+                return '<p class="error">' . \Craft::t('emails', 'The ckeditor config is not valid for this email') . '</p>';
+            }
+        }
         $field = \Craft::$app->fields->createField($config);
         return $field->getInputHtml($this->owner->body, null);
     }

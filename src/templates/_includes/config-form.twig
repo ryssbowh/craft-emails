@@ -44,6 +44,8 @@
 <div id="wysiwyg-field">
     {% if not craft.app.plugins.isPluginEnabled('ckeditor') %}
         <p class="error">{{ 'You must install ckeditor in the settings'|t('emails') }}</p>
+    {% elseif craft.emails.ckeditor.isVersionAtLeast5() %}
+        {% include 'emails/_includes/ckeditor-config' with craft.emails.ckeditor.configVariables() %}
     {% else %}
         {% embed '_includes/forms/field.twig' with {
             label: 'CKEditor Config'|t('ckeditor'),

@@ -35,4 +35,9 @@ class EmailsVariable
     {
         return Emails::$plugin->messages;
     }
+
+    public function ckeditor()
+    {
+        return Emails::$plugin->ckeditor;
+    }
 }

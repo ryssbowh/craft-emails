@@ -15,7 +15,6 @@ use craft\web\Controller;
 use yii\base\Event;
 use yii\helpers\Markdown;
 use yii\mail\MailEvent;
-use yii\web\ForbiddenHttpException;
 
 class CpEmailsController extends Controller
 {
@@ -31,7 +30,7 @@ class CpEmailsController extends Controller
     /**
      * Email dashboard action
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionIndex()
     {
@@ -41,7 +40,7 @@ class CpEmailsController extends Controller
             'emails' => Emails::$plugin->emails->all,
             'canAddDelete' => $allow && \Craft::$app->getUser()->checkPermission('addDeleteEmailTemplates'),
             'canEditConfig' => $allow && \Craft::$app->getUser()->checkPermission('modifyEmailConfig'),
-            'canViewLogs' => \Craft::$app->getUser()->checkPermission('seeEmailLogs')
+            'canViewLogs' => \Craft::$app->getUser()->checkPermission('seeEmailLogs'),
         ]);
     }
 
@@ -50,7 +49,7 @@ class CpEmailsController extends Controller
      *
      * @param  int    $id
      * @param  string $langId
-     * @return Reponse
+     * @return \yii\web\Response
      */
     public function actionPreview(int $id, string $langId)
     {
@@ -62,9 +61,13 @@ class CpEmailsController extends Controller
         $language = \Craft::$app->language;
         \Craft::$app->language = $langId;
         $message = \Craft::$app->systemMessages->getMessage($email->key, $langId);
-        Event::trigger(Mailer::class, Mailer::EVENT_BEFORE_PREP, new MailEvent([
-            'message' => $message,
-        ]));
+        Event::trigger(
+            Mailer::class,
+            Mailer::EVENT_BEFORE_PREP,
+            new MailEvent([
+                'message' => $message,
+            ]),
+        );
         // Temporarily disable lazy transform generation
         $generateTransformsBeforePageLoad = $generalConfig->generateTransformsBeforePageLoad;
         $generalConfig->generateTransformsBeforePageLoad = true;
@@ -72,12 +75,14 @@ class CpEmailsController extends Controller
         $fromEmail = $email->from ? \Craft::parseEnv($email->from) : \Craft::parseEnv($settings->fromEmail);
         $fromName = $email->fromName ? \Craft::parseEnv($email->fromName) : \Craft::parseEnv($settings->fromName);
         $replyToEmail = $email->replyTo ? \Craft::parseEnv($email->replyTo) : \Craft::parseEnv($settings->replyToEmail);
-        $variables = $message->variables ?? [] + [
-            'emailKey' => $email->key,
-            'fromEmail' => $fromEmail,
-            'replyToEmail' => $replyToEmail,
-            'fromName' => $fromName,
-        ];
+        $variables =
+            $message->variables ??
+            [] + [
+                'emailKey' => $email->key,
+                'fromEmail' => $fromEmail,
+                'replyToEmail' => $replyToEmail,
+                'fromName' => $fromName,
+            ];
         $subject = $this->request->getParam('subject');
         $body = $this->request->getParam('body');
         $subjectError = '';
@@ -92,9 +97,13 @@ class CpEmailsController extends Controller
         } catch (\Throwable $e) {
             $bodyError = \Craft::t('emails', 'Error while rendering body, raw twig is displayed.');
         }
-        $body = $view->renderTemplate($email->template, array_merge($variables, [
-            'body' => Template::raw(Markdown::process($body)),
-        ]), $view::TEMPLATE_MODE_SITE);
+        $body = $view->renderTemplate(
+            $email->template,
+            array_merge($variables, [
+                'body' => Template::raw(Markdown::process($body)),
+            ]),
+            $view::TEMPLATE_MODE_SITE,
+        );
         // Set things back to normal
         \Craft::$app->language = $language;
         $generalConfig->generateTransformsBeforePageLoad = $generateTransformsBeforePageLoad;
@@ -102,28 +111,28 @@ class CpEmailsController extends Controller
             'subject' => $subject,
             'body' => $body,
             'subjectError' => $subjectError,
-            'bodyError' => $bodyError
+            'bodyError' => $bodyError,
         ]);
     }
 
     /**
      * Add email action
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionAdd()
     {
         $this->requirePermission('addDeleteEmailTemplates');
         return $this->renderTemplate('emails/add-email', [
             'email' => new Email(),
-            'settings' => Emails::$plugin->settings
+            'settings' => Emails::$plugin->settings,
         ]);
     }
 
     /**
      * Action add translation
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionAddTranslation()
     {
@@ -133,18 +142,18 @@ class CpEmailsController extends Controller
         $locale = \Craft::$app->i18n->getLocaleById($langId);
         if (Emails::$plugin->messages->addTranslation($key, $langId)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Translation for {lang} added.', ['lang' => $locale->displayName]));
-            return true;
+            return $this->asJson([]);
         }
         $this->response->setStatusCode(400);
         return $this->asJson([
-            'message' => \Craft::t('emails', "Couldn't add translation")
+            'message' => \Craft::t('emails', "Couldn't add translation"),
         ]);
     }
 
     /**
      * Action delete translation
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionDeleteTranslation()
     {
@@ -154,11 +163,11 @@ class CpEmailsController extends Controller
         $locale = \Craft::$app->i18n->getLocaleById($langId);
         if (Emails::$plugin->messages->deleteTranslation($key, $langId)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Translation for {lang} deleted.', ['lang' => $locale->displayName]));
-            return true;
+            return $this->asJson([]);
         }
         $this->response->setStatusCode(400);
         return $this->asJson([
-            'message' => \Craft::t('emails', "Couldn't delete translation")
+            'message' => \Craft::t('emails', "Couldn't delete translation"),
         ]);
     }
 
@@ -166,7 +175,7 @@ class CpEmailsController extends Controller
      * Edit email content action
      *
      * @param  int $id
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionEditContent(int $id, ?string $langId = null)
     {
@@ -181,7 +190,7 @@ class CpEmailsController extends Controller
     /**
      * Save email content action
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionSaveContent()
     {
@@ -197,7 +206,7 @@ class CpEmailsController extends Controller
         $message = new SystemMessage([
             'key' => $this->request->getRequiredParam('key'),
             'subject' => $this->request->getRequiredParam('subject'),
-            'body' => $body
+            'body' => $body,
         ]);
         if (Emails::$plugin->messages->saveMessage($message, $langId, $attachements)) {
             \Craft::$app->session->setNotice(\Craft::t('emails', 'Content saved'));
@@ -210,14 +219,14 @@ class CpEmailsController extends Controller
      * Edit email config action
      *
      * @param  int $id
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionEditConfig(int $id)
     {
         $this->requirePermission('modifyEmailConfig');
         return $this->renderTemplate('emails/edit-config', [
             'email' => Emails::$plugin->emails->getById($id),
-            'settings' => Emails::$plugin->settings
+            'settings' => Emails::$plugin->settings,
         ]);
     }
 
@@ -225,7 +234,7 @@ class CpEmailsController extends Controller
      * Delete email action
      *
      * @param  int $id
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionDelete(int $id)
     {
@@ -235,7 +244,7 @@ class CpEmailsController extends Controller
             $message = \Craft::t('emails', 'Email has been deleted.');
             if ($this->request->isAjax) {
                 return $this->asJson([
-                    'message' => $message
+                    'message' => $message,
                 ]);
             }
             \Craft::$app->session->setNotice($message);
@@ -245,7 +254,7 @@ class CpEmailsController extends Controller
         if ($this->request->isAjax) {
             $this->response->setStatusCode(400);
             return $this->asJson([
-                'message' => $message
+                'message' => $message,
             ]);
         }
         \Craft::$app->session->setNotice($message);
@@ -255,7 +264,7 @@ class CpEmailsController extends Controller
     /**
      * Save config action
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionSaveConfig()
     {
@@ -278,14 +287,12 @@ class CpEmailsController extends Controller
         $template = $new ? 'emails/add-email' : 'emails/edit-config';
         return $this->renderTemplate($template, [
             'email' => $email,
-            'settings' => Emails::$plugin->settings
+            'settings' => Emails::$plugin->settings,
         ]);
     }
 
     /**
      * Delete email logs action
-     *
-     * @return Response
      */
     public function actionDeleteLogs()
     {
@@ -301,7 +308,7 @@ class CpEmailsController extends Controller
     /**
      * View email logs action
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionLogs(int $emailId)
     {
@@ -309,18 +316,18 @@ class CpEmailsController extends Controller
         $email = Emails::$plugin->emails->getById($emailId);
         $orderSide = $this->request->getParam('orderSide', 'desc');
         $order = $this->request->getParam('order', 'dateCreated');
-        list($models, $pages) = Emails::$plugin->emails->getLogs($email, $order, $orderSide);
+        [$models, $pages] = Emails::$plugin->emails->getLogs($email, $order, $orderSide);
         return $this->renderTemplate('emails/email-logs', [
             'email' => $email,
             'logs' => $models,
-            'pages' => $pages
+            'pages' => $pages,
         ]);
     }
 
     /**
      * View email action
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionView()
     {
@@ -333,7 +340,7 @@ class CpEmailsController extends Controller
     /**
      * Resend email action
      *
-     * @return Response
+     * @return \yii\web\Response
      */
     public function actionResend()
     {
@@ -347,7 +354,7 @@ class CpEmailsController extends Controller
             $message = \Craft::t('emails', 'Error while resending the email.');
         }
         return $this->asJson([
-            'message' => $message
+            'message' => $message,
         ]);
     }
 
@@ -360,7 +367,7 @@ class CpEmailsController extends Controller
     {
         Emails::$plugin->emails->install();
         return $this->asJson([
-            'success' => true
+            'success' => true,
         ]);
     }
 
@@ -369,7 +376,7 @@ class CpEmailsController extends Controller
      *
      * @param  SystemMessage $message
      * @param  string        $langId
-     * @return Response
+     * @return \yii\web\Response
      */
     protected function editContent(SystemMessage $message, string $langId)
     {
@@ -391,7 +398,7 @@ class CpEmailsController extends Controller
             'translatableLocales' => $translatableLocales,
             'settings' => Emails::$plugin->settings,
             'primaryLanguage' => \Craft::$app->getSites()->getPrimarySite()->language,
-            'attachements' => Emails::$plugin->attachements->get($email->key, $langId, true)
+            'attachements' => Emails::$plugin->attachements->get($email->key, $langId, true),
         ]);
     }
 }

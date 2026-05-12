@@ -2,6 +2,7 @@
 
 namespace Ryssbowh\CraftEmails\models;
 
+use craft\ckeditor\Field;
 use Ryssbowh\CraftEmails\Emails;
 use Ryssbowh\CraftEmails\records\Email as EmailRecord;
 use Ryssbowh\CraftEmails\helpers\EmailHelper;
@@ -20,6 +21,7 @@ class Email extends Model
     public $dateUpdated;
     public $template = 'emails/template';
     public $ckeConfig = '';
+    public $ckeConfigJson = [];
     public $system = false;
     public $plain = false;
     public $bcc;
@@ -39,33 +41,45 @@ class Email extends Model
     public function defineRules(): array
     {
         return [
-            [['id', 'uid', 'dateCreated', 'dateUpdated', 'attachements'], 'safe'],
+            [['id', 'uid', 'dateCreated', 'dateUpdated', 'attachements', 'ckeConfigJson', 'ckeConfig'], 'safe'],
             [['key', 'heading', 'template'], 'required'],
-            [['key', 'heading', 'bcc', 'fromName', 'instructions', 'ckeConfig'], 'string'],
+            [['key', 'heading', 'bcc', 'fromName', 'instructions'], 'string'],
             [['saveLogs', 'system', 'plain'], 'boolean', 'trueValue' => true, 'falseValue' => false, 'skipOnEmpty' => false],
             ['template', 'string'],
             ['template', TemplateValidator::class],
-            [['from', 'replyTo'], function ($attribute) {
-                $email = \Craft::parseEnv($this->$attribute);
-                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    $this->addError($attribute, $email . ' is not a valid email');
-                    return false;
-                }
-            }],
-            [['sent'], 'integer'],
-            [['cc', 'bcc'], function ($attribute) {
-                foreach (EmailHelper::parseEmails($this->$attribute) as $email) {
+            [
+                ['from', 'replyTo'],
+                function ($attribute) {
+                    $email = \Craft::parseEnv($this->$attribute);
                     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                         $this->addError($attribute, $email . ' is not a valid email');
                         return false;
                     }
-                }
-            }],
-            ['key', 'unique', 'targetClass' => EmailRecord::class, 'targetAttribute' => 'key', 'filter' => function ($query) {
-                if ($this->id) {
-                    $query->andWhere(['!=', 'id', $this->id]);
-                }
-            }],
+                },
+            ],
+            [['sent'], 'integer'],
+            [
+                ['cc', 'bcc'],
+                function ($attribute) {
+                    foreach (EmailHelper::parseEmails($this->$attribute) as $email) {
+                        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                            $this->addError($attribute, $email . ' is not a valid email');
+                            return false;
+                        }
+                    }
+                },
+            ],
+            [
+                'key',
+                'unique',
+                'targetClass' => EmailRecord::class,
+                'targetAttribute' => 'key',
+                'filter' => function ($query) {
+                    if ($this->id) {
+                        $query->andWhere(['!=', 'id', $this->id]);
+                    }
+                },
+            ],
         ];
     }
 
@@ -85,9 +99,36 @@ class Email extends Model
         $request = \Craft::$app->request;
         foreach ($this->safeAttributes() as $attribute) {
             if ($request->getParam($attribute) !== null) {
-                $this->$attribute = $request->getParam($attribute);
+                $value = $request->getParam($attribute);
+                if ($attribute === 'ckeConfigJson') {
+                    $value['toolbar'] = json_decode($value['toolbar'] ?? '[]', true);
+                    $value['entryTypes'] = array_map(function ($config) {
+                        return json_decode($config, true);
+                    }, $value['entryTypes'] ?? []);
+                }
+                $this->$attribute = $value;
             }
         }
+    }
+
+    /**
+     * Returns the entry types from cke config, if any.
+     *
+     * @since 4.0.0
+     */
+    public function getEntryTypes(): array
+    {
+        return array_map(fn($config) => Field::entryType($config), $this->ckeConfigJson['entryTypes'] ?? []);
+    }
+
+    /**
+     * Returns the image field uid from cke config, if any.
+     *
+     * @since 4.0.0
+     */
+    public function getImageFieldUid(): ?string
+    {
+        return $this->ckeConfigJson['imageFieldUid'] ?? null;
     }
 
     /**
@@ -99,19 +140,19 @@ class Email extends Model
     {
         return [
             'key' => $this->key,
-            'system' => (bool)$this->system,
+            'system' => (bool) $this->system,
             'instructions' => $this->instructions,
-            'saveLogs' => (bool)$this->saveLogs,
-            'plain' => (bool)$this->plain,
+            'saveLogs' => (bool) $this->saveLogs,
+            'plain' => (bool) $this->plain,
             'from' => $this->from,
             'replyTo' => $this->replyTo,
             'bcc' => $this->bcc,
             'cc' => $this->cc,
             'heading' => $this->heading,
-            'instructions' => $this->instructions,
             'fromName' => $this->fromName,
             'template' => $this->template,
-            'ckeConfig' => $this->ckeConfig
+            'ckeConfig' => $this->ckeConfig,
+            'ckeConfigJson' => $this->ckeConfigJson,
         ];
     }
 

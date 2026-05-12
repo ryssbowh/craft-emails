@@ -13,6 +13,7 @@ use Ryssbowh\CraftEmails\jobs\ReinstallJob;
 use Ryssbowh\CraftEmails\models\Settings;
 use Ryssbowh\CraftEmails\models\actions\SendEmail;
 use Ryssbowh\CraftEmails\services\AttachementsService;
+use Ryssbowh\CraftEmails\services\CkEditor;
 use Ryssbowh\CraftEmails\services\EmailShotsService;
 use Ryssbowh\CraftEmails\services\EmailSourceService;
 use Ryssbowh\CraftEmails\services\EmailerService;
@@ -87,7 +88,8 @@ class Emails extends Plugin
             'emailShots' => EmailShotsService::class,
             'mailchimp' => MailchimpService::class,
             'attachements' => AttachementsService::class,
-            'messages' => MessagesService::class
+            'messages' => MessagesService::class,
+            'ckeditor' => CkEditor::class
         ]);
 
         $this->registerMailer();
@@ -373,9 +375,9 @@ class Emails extends Plugin
     protected function registerProjectConfig()
     {
         Craft::$app->projectConfig
-            ->onAdd(EmailsService::CONFIG_KEY.'.{uid}', [$this->emails, 'handleChanged'])
-            ->onUpdate(EmailsService::CONFIG_KEY.'.{uid}', [$this->emails, 'handleChanged'])
-            ->onRemove(EmailsService::CONFIG_KEY.'.{uid}', [$this->emails, 'handleDeleted']);
+            ->onAdd(EmailsService::CONFIG_KEY . '.{uid}', [$this->emails, 'handleChanged'])
+            ->onUpdate(EmailsService::CONFIG_KEY . '.{uid}', [$this->emails, 'handleChanged'])
+            ->onRemove(EmailsService::CONFIG_KEY . '.{uid}', [$this->emails, 'handleDeleted']);
 
         Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function (RebuildConfigEvent $e) {
             Emails::$plugin->emails->rebuildConfig($e);
