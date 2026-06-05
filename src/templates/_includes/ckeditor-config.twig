@@ -1,6 +1,8 @@
 {% import '_includes/forms.twig' as forms %}
 {% import 'codeeditor/codeEditor.twig' as codeEditor %}
 
+{% set ckeConfigJson = email.ckeConfigJson ?? [] %}
+
 {% namespace 'ckeConfigJson' %}
     {% embed '_includes/forms/field.twig' with {
     label: 'Toolbar'|t('ckeditor'),
@@ -27,7 +29,7 @@
                 </div>
             </div>
             </div>
-            {{ hiddenInput('toolbar', (email.ckeConfigJson.toolbar ?? [])|json_encode) }}
+            {{ hiddenInput('toolbar', (ckeConfigJson.toolbar ?? [])|json_encode) }}
         </div>
         {% endblock %}
     {% endembed %}
@@ -38,7 +40,7 @@
     showUnused: false,
     } %}
     {% set baseCodeEditorOptions = {} %}
-    {% set lang = email.ckeConfigJson.js ? 'js' : 'json' %}
+    {% set lang = ckeConfigJson.js ?? false ? 'js' : 'json' %}
     {% set isJson = lang == 'json' %}
     {% set isJs = lang == 'js' %}
 
@@ -67,7 +69,7 @@
             {label: 'Heading {level}'|t('ckeditor', {level: 5}), value: '5'},
             {label: 'Heading {level}'|t('ckeditor', {level: 6}), value: '6'},
         ],
-        values: email.ckeConfigJson.headingLevels ?? [],
+        values: ckeConfigJson.headingLevels ?? [],
     }) }}
 
     {{ forms.checkboxSelectField({
@@ -76,7 +78,7 @@
         name: 'advancedLinkFields',
         showAllOption: false,
         options: advanceLinkOptions,
-        values: email.ckeConfigJson.advancedLinkFields ?? [],
+        values: ckeConfigJson.advancedLinkFields ?? [],
         sortable: true,
     }) }}
 
@@ -84,7 +86,7 @@
         id: 'show-word-count',
         name: 'showWordCount',
         label: 'Show word count'|t('ckeditor'),
-        on: email.ckeConfigJson.showWordCount ?? false,
+        on: ckeConfigJson.showWordCount ?? false,
     }) }}
 
     {% embed '_includes/forms/field.twig' with {
@@ -212,7 +214,7 @@
         label: 'Available Volumes'|t('ckeditor'),
         instructions: 'The volumes that should be available when selecting assets.'|t('ckeditor'),
         options: volumeOptions,
-        values: email.ckeConfigJson.availableVolumes ?? [],
+        values: ckeConfigJson.availableVolumes ?? [],
         showAllOption: volumeOptions|length ? true : false,
     }) }}
 
@@ -221,7 +223,7 @@
         instructions: 'Whether to show volumes that the user doesn’t have permission to view.'|t('ckeditor'),
         id: 'showUnpermittedVolumes',
         name: 'showUnpermittedVolumes',
-        on: email.ckeConfigJson.showUnpermittedVolumes ?? false,
+        on: ckeConfigJson.showUnpermittedVolumes ?? false,
     }) }}
 
     {{ forms.lightswitchField({
@@ -229,7 +231,7 @@
         instructions: 'Whether to show files that the user doesn’t have permission to view, per the “View files uploaded by other users” permission.'|t('ckeditor'),
         id: 'showUnpermittedFiles',
         name: 'showUnpermittedFiles',
-        on: email.ckeConfigJson.showUnpermittedFiles ?? false,
+        on: ckeConfigJson.showUnpermittedFiles ?? false,
     }) }}
 
     {% embed '_includes/forms/field.twig' with {
@@ -241,7 +243,7 @@
             <label class="nowrap">
             <img class="mb-xs" src="{{ baseIconsUrl }}/img.svg" width="80" height="60" alt="">
             {{ input('radio', 'imageMode', 'img', {
-                checked: (email.ckeConfigJson.imageMode ?? 'img') == 'img',
+                checked: (ckeConfigJson.imageMode ?? 'img') == 'img',
                 class: 'fieldtoggle',
                 data: {'target-prefix': 'image-mode--'},
             }) }}
@@ -250,7 +252,7 @@
             <label class="nowrap">
             <img class="mb-xs" src="{{ baseIconsUrl }}/entries.svg" width="80" height="60" alt="">
             {{ input('radio', 'imageMode', 'entries', {
-                checked: (email.ckeConfigJson.imageMode ?? 'img') == 'entries',
+                checked: (ckeConfigJson.imageMode ?? 'img') == 'entries',
                 class: 'fieldtoggle',
                 data: {'target-prefix': 'image-mode--'},
             }) }}
@@ -262,7 +264,7 @@
 
     {% tag 'div' with {
         id: 'image-mode--img',
-        class: (email.ckeConfigJson.imageMode ?? 'img') != 'img' ? 'hidden' : null,
+        class: (ckeConfigJson.imageMode ?? 'img') != 'img' ? 'hidden' : null,
     } %}
         {% embed '_includes/forms/field.twig' with {
             id: 'default-upload-location',
@@ -283,15 +285,15 @@
                     },
                     ...volumeOptions,
                     ],
-                    value: email.ckeConfigJson.defaultUploadLocationVolume ?? '',
+                    value: ckeConfigJson.defaultUploadLocationVolume ?? '',
                 }) }}
                 </div>
-                <div id="default-upload-location-subpath-container" class="flex-grow {{ not (email.ckeConfigJson.defaultUploadLocationVolume ?? '') ? 'hidden' }}">
+                <div id="default-upload-location-subpath-container" class="flex-grow {{ not (ckeConfigJson.defaultUploadLocationVolume ?? '') ? 'hidden' }}">
                 {{ forms.text({
                     class: 'ltr',
                     id: "default-upload-location-subpath",
                     name: "defaultUploadLocationSubpath",
-                    value: email.ckeConfigJson.defaultUploadLocationSubpath ?? '',
+                    value: ckeConfigJson.defaultUploadLocationSubpath ?? '',
                     placeholder: "path/to/subfolder"|t('app'),
                 }) }}
                 </div>
@@ -305,7 +307,7 @@
         label: 'Available Transforms'|t('ckeditor'),
         instructions: 'The transforms that should be available when inserting images.'|t('ckeditor'),
         options: transformOptions,
-        values: email.ckeConfigJson.availableTransforms ?? [],
+        values: ckeConfigJson.availableTransforms ?? [],
         showAllOption: transformOptions|length ? true : false,
         }) }}
 
@@ -315,13 +317,13 @@
         label: 'Default Transform'|t('ckeditor'),
         instructions: 'The default transform that should be applied when inserting an image.'|t('ckeditor'),
         options: defaultTransformOptions,
-        value: email.ckeConfigJson.defaultTransform ?? '',
+        value: ckeConfigJson.defaultTransform ?? '',
         }) }}
     {% endtag %}
 
     {% tag 'div' with {
         id: 'image-mode--entries',
-        class: (email.ckeConfigJson.imageMode ?? 'img') != 'entries' ? 'hidden' : null,
+        class: (ckeConfigJson.imageMode ?? 'img') != 'entries' ? 'hidden' : null,
     } %}
         {% include 'ckeditor/_image-field-select.twig' with {
             field: email,

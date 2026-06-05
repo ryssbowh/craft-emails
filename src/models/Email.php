@@ -35,6 +35,12 @@ class Email extends Model
     public $fromName;
     public $replyTo;
 
+    public function init(): void
+    {
+        parent::init();
+        $this->normalizeCkeConfigJson();
+    }
+
     /**
      * @inheritDoc
      */
@@ -109,6 +115,7 @@ class Email extends Model
                 $this->$attribute = $value;
             }
         }
+        $this->normalizeCkeConfigJson();
     }
 
     /**
@@ -186,5 +193,18 @@ class Email extends Model
         }
         asort($languages);
         return $languages;
+    }
+
+    protected function normalizeCkeConfigJson(): void
+    {
+        if (is_string($this->ckeConfigJson)) {
+            $decoded = json_decode($this->ckeConfigJson, true);
+            $this->ckeConfigJson = is_array($decoded) ? $decoded : [];
+            return;
+        }
+
+        if (!is_array($this->ckeConfigJson)) {
+            $this->ckeConfigJson = [];
+        }
     }
 }
