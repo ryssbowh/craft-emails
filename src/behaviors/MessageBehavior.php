@@ -48,7 +48,7 @@ class MessageBehavior extends Behavior
             'handle' => 'body',
         ];
         if (Emails::$plugin->ckeditor->isVersionAtLeast5()) {
-            $config = array_merge($config, $email->ckeConfigJson);
+            $config = array_merge($config, is_array($email->ckeConfigJson) ? $email->ckeConfigJson : []);
         } else {
             try {
                 Plugin::getInstance()->ckeConfigs->getByUid($email->ckeConfig ?? '');
